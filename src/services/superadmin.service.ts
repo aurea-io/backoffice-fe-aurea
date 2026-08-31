@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { Tenant, TenantFeature } from '../types';
+import type { Tenant, TenantFeature, ModuleCatalogResponse } from '../types';
 
 export interface CreateTenantPayload {
   name: string;
@@ -19,6 +19,10 @@ export interface UpdateTenantPayload {
 }
 
 export const superadminService = {
+  async getModuleCatalog(): Promise<ModuleCatalogResponse> {
+    const { data } = await api.get<ModuleCatalogResponse>('/superadmin/modules');
+    return data;
+  },
   async getAllTenants(): Promise<Tenant[]> {
     const { data } = await api.get<Tenant[]>('/superadmin/tenants');
     return data;

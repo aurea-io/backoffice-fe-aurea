@@ -4,6 +4,7 @@ import {
   Store,
   LogOut,
   User as UserIcon,
+  Layers,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -39,6 +40,12 @@ export function Sidebar() {
       label: 'Tenants & Comercios',
       path: '/tenants',
       icon: Store,
+      show: isSuperadmin,
+    },
+    {
+      label: 'Módulos y funciones',
+      path: '/modules',
+      icon: Layers,
       show: isSuperadmin,
     },
   ];

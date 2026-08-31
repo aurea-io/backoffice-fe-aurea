@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Layers, ShieldAlert, Sparkles } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import type { FeatureKey } from '../../types';
+import { superadminService } from '../../services/superadmin.service';
 
 interface FeatureDef {
   key: FeatureKey;
@@ -64,6 +66,32 @@ const PLATFORM_FEATURES: FeatureDef[] = [
 ];
 
 export function SuperadminFeaturesPage() {
+  const [catalog, setCatalog] = useState<FeatureDef[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    superadminService.getModuleCatalog()
+      .then(({ modules }) => {
+        if (!mounted) return;
+        setCatalog(modules.map((module) => ({
+          key: module.key as FeatureKey,
+          name: module.name,
+          description: module.description,
+          badge: `${module.section} · ${module.creditCost} créditos`,
+          details: `Página ${module.page}. Permisos: ${module.requiredPermissions.join(', ') || 'sin permisos específicos'}.`,
+          verticals: ['Configurado desde backend'],
+        })));
+      })
+      .catch(() => {
+        if (mounted) setCatalog(PLATFORM_FEATURES);
+      })
+      .finally(() => mounted && setIsLoading(false));
+    return () => { mounted = false; };
+  }, []);
+
+  const features = catalog.length ? catalog : PLATFORM_FEATURES;
+
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in-50 duration-200">
       {/* Header */}
@@ -76,7 +104,7 @@ export function SuperadminFeaturesPage() {
           Módulos Disponibles
         </h1>
         <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-          Estos son los módulos que podés activar o desactivar para cada tenant desde su gestión.
+          Catálogo técnico sincronizado desde el backend. La activación por tenant se administra desde su gestión.
         </p>
       </div>
 
@@ -96,7 +124,7 @@ export function SuperadminFeaturesPage() {
 
       {/* Feature Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {PLATFORM_FEATURES.map((feature) => (
+        {isLoading ? <Card variant="glass" padding="md"><p className="text-sm text-zinc-500">Cargando catálogo...</p></Card> : features.map((feature) => (
           <Card
             key={feature.key}
             variant="glass"

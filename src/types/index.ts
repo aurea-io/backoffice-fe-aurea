@@ -9,6 +9,23 @@ export type FeatureKey =
   | 'tables'
   | 'reviews';
 
+export interface ModuleFeatureDefinition {
+  key: string;
+  name: string;
+  description: string;
+  section: string;
+  page: string;
+  module: string;
+  requiredPermissions: string[];
+  creditCost: number;
+  status: 'active' | 'toBeDeprecated' | 'deprecated';
+}
+
+export interface ModuleCatalogResponse {
+  version: number;
+  modules: ModuleFeatureDefinition[];
+}
+
 export type Theme = 'LIGHT' | 'DARK' | 'SYSTEM';
 
 // ── User Model ─────────────────────────────────────────────────────────────

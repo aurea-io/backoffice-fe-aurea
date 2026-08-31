@@ -20,6 +20,12 @@ import { Badge } from '../../components/ui/Badge';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import type { CatalogItem, Tenant } from '../../types';
 
+interface PublicTenantConfig {
+  tenant: { id: string; slug: string; name: string; vertical: string };
+  settings: Tenant['settings'];
+  capabilities: Record<string, boolean>;
+}
+
 export default function PublicTenantPreviewPage() {
   const { slug } = useParams<{ slug: string }>();
 
@@ -34,12 +40,23 @@ export default function PublicTenantPreviewPage() {
     async function loadPublicData() {
       setIsLoading(true);
       try {
-        // Fetch all tenants to find the matching slug
-        const res = await api.get<Tenant[]>('/superadmin/tenants');
-        const found = res.data.find((t) => t.slug === slug);
+        const configRes = await api.get<PublicTenantConfig>(`/public/tenants/${slug}/config`);
+        const config = configRes.data;
+        const found = {
+          ...config.tenant,
+          isActive: true,
+          settings: config.settings,
+          createdAt: '',
+          updatedAt: '',
+        } as Tenant;
 
         if (found) {
           setTenant(found);
+          const theme = document.createElement('link');
+          theme.rel = 'stylesheet';
+          theme.href = `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/public/tenants/${found.slug}/style.css`;
+          theme.dataset.tenantTheme = found.slug;
+          document.head.appendChild(theme);
           const catRes = await api.get<CatalogItem[]>('/catalog', {
             headers: { 'x-tenant-id': found.id },
           });
@@ -55,6 +72,9 @@ export default function PublicTenantPreviewPage() {
       }
     }
     loadPublicData();
+    return () => {
+      document.head.querySelector(`link[data-tenant-theme="${slug}"]`)?.remove();
+    };
   }, [slug]);
 
   if (isLoading) {
