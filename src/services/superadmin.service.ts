@@ -5,8 +5,9 @@ export interface CreateTenantPayload {
   name: string;
   slug: string;
   vertical: string;
-  ownerEmail?: string;
-  initialFeatures?: string[];
+  ownerEmail: string;
+  features?: string[];
+  settings?: Record<string, unknown>;
 }
 
 export interface UpdateTenantPayload {
@@ -35,6 +36,11 @@ export const superadminService = {
 
   async updateTenant(id: string, payload: UpdateTenantPayload): Promise<Tenant> {
     const { data } = await api.patch<Tenant>(`/superadmin/tenants/${id}`, payload);
+    return data;
+  },
+
+  async deleteTenant(id: string): Promise<{ success: boolean; message: string }> {
+    const { data } = await api.delete<{ success: boolean; message: string }>(`/superadmin/tenants/${id}`);
     return data;
   },
 

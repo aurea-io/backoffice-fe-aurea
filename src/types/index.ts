@@ -88,6 +88,8 @@ export interface Tenant {
   updatedAt: string;
   features?: TenantFeature[];
   memberships?: TenantMember[];
+  invitations?: Invitation[];
+  invitation?: Invitation;
   _count?: {
     catalogItems?: number;
     memberships?: number;

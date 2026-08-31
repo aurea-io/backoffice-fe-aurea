@@ -5,6 +5,7 @@ import { useTenantStore } from './store/tenantStore';
 import { authService } from './services/auth.service';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { SuperadminRoute } from './components/auth/SuperadminRoute';
 
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
@@ -13,6 +14,7 @@ import MagicLinkPage from './features/auth/MagicLinkPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
+import { SuperadminTenantsPage } from './features/superadmin/SuperadminTenantsPage';
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
@@ -85,6 +87,12 @@ function App() {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
+
+          {/* Superadmin Only Routes */}
+          <Route element={<SuperadminRoute />}>
+            <Route path="tenants" element={<SuperadminTenantsPage />} />
+            <Route path="superadmin/tenants" element={<Navigate to="/tenants" replace />} />
+          </Route>
         </Route>
       </Route>
 
