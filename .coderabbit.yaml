@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: es-AR
+reviews:
+  profile: chill
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  path_instructions:
+    - path: "src/features/**"
+      instructions: |
+        Revisar que las capabilities controlen la experiencia sin convertirse en autorización; mantener accesibilidad, estados de carga y errores claros.
+    - path: "src/services/**"
+      instructions: |
+        Revisar contratos API, cambio de tenant, caché y que no se envíen tenantIds arbitrarios para obtener acceso.
+    - path: "src/features/preview/**"
+      instructions: |
+        Revisar que la preview consuma endpoints públicos seguros y que el theme se limpie al cambiar de tenant.
+    - path: "src/components/**"
+      instructions: |
+        Revisar accesibilidad, responsive, componentes reutilizables y que no se duplique UI por tenant.
+    - path: "src/store/**"
+      instructions: |
+        Revisar limpieza de estado al cambiar tenant, expiración de datos y que la UI no confíe en localStorage para autorización.
+chat:
+  auto_reply: true
