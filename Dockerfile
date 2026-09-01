@@ -1,13 +1,14 @@
 FROM node:22-bookworm-slim AS build
 
 WORKDIR /app
-ARG VITE_API_URL=http://localhost:3001/api
+ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY . .
-RUN npm run build
+RUN test -n "$VITE_API_URL" \
+  && npm run build
 
 FROM nginx:1.27-alpine
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
