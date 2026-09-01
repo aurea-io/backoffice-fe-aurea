@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { AuthResponse, UserContextResponse, User } from '../types';
+import type { AuthResponse, UserContextResponse, CapabilityResponse, User } from '../types';
 
 export interface LoginPayload {
   email: string;
@@ -37,6 +37,13 @@ export const authService = {
   async getMe(tenantId?: string): Promise<UserContextResponse> {
     const headers = tenantId ? { 'x-tenant-id': tenantId } : undefined;
     const { data } = await api.get<UserContextResponse>('/auth/me', { headers });
+    return data;
+  },
+
+  async getCapabilities(tenantId: string): Promise<CapabilityResponse> {
+    const { data } = await api.get<CapabilityResponse>('/auth/me/capabilities', {
+      headers: { 'x-tenant-id': tenantId },
+    });
     return data;
   },
 

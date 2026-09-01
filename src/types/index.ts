@@ -157,6 +157,11 @@ export interface AuthResponse {
   tenants: TenantSummary[];
 }
 
+export interface CapabilityResponse {
+  map: Record<string, boolean>;
+  tree: Array<{ key: string; enabled: boolean; [key: string]: unknown }>;
+}
+
 export interface UserContextResponse {
   user: {
     id: string;

@@ -6,14 +6,16 @@ import { useTenantStore } from '../store/tenantStore';
 export function useCapability() {
   const isSuperadmin = useAuthStore((state) => state.isSuperadmin);
   const currentTenant = useTenantStore((state) => state.currentTenant);
+  const capabilities = useTenantStore((state) => state.capabilities);
 
   const hasCapability = useCallback(
     (capability: string) => {
       if (isSuperadmin || currentTenant?.role === 'SUPERADMIN') return true;
+      if (capabilities[capability] !== undefined) return capabilities[capability];
       return currentTenant?.permissions.includes(capability) === true ||
         currentTenant?.activeFeatures.includes(capability) === true;
     },
-    [currentTenant, isSuperadmin],
+    [capabilities, currentTenant, isSuperadmin],
   );
 
   const hasAnyCapability = useCallback(
