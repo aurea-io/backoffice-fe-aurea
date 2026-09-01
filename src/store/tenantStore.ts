@@ -11,6 +11,7 @@ interface TenantState {
   activeTenantId: string | null;
   isLoadingTenant: boolean;
   platformMode: PlatformMode;
+  capabilities: Record<string, boolean>;
 
   setCurrentTenant: (tenant: TenantContext | null) => void;
   setActiveTenantId: (tenantId: string | null) => void;
@@ -24,6 +25,7 @@ interface TenantState {
   returnToPlatform: () => void;
   /** Set the platform mode directly */
   setPlatformMode: (mode: PlatformMode) => void;
+  setCapabilities: (capabilities: Record<string, boolean>) => void;
 }
 
 function loadActiveTenantId(): string | null {
@@ -49,14 +51,15 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   activeTenantId: loadActiveTenantId(),
   isLoadingTenant: false,
   platformMode: loadPlatformMode(),
+  capabilities: {},
 
   setCurrentTenant: (tenant) => {
     if (tenant) {
       localStorage.setItem(ACTIVE_TENANT_KEY, tenant.tenantId);
-      set({ currentTenant: tenant, activeTenantId: tenant.tenantId, isLoadingTenant: false });
+      set({ currentTenant: tenant, activeTenantId: tenant.tenantId, isLoadingTenant: false, capabilities: {} });
     } else {
       localStorage.removeItem(ACTIVE_TENANT_KEY);
-      set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false });
+      set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, capabilities: {} });
     }
   },
 
@@ -72,6 +75,8 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 
   setLoadingTenant: (loading) => set({ isLoadingTenant: loading }),
 
+  setCapabilities: (capabilities) => set({ capabilities }),
+
   hasFeature: (feature) => {
     const current = get().currentTenant;
     if (!current) return false;
@@ -82,7 +87,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   clearTenant: () => {
     localStorage.removeItem(ACTIVE_TENANT_KEY);
     localStorage.removeItem(PLATFORM_MODE_KEY);
-    set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, platformMode: 'superadmin' });
+    set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, capabilities: {}, platformMode: 'superadmin' });
   },
 
   enterTenantOperation: (tenantId) => {
