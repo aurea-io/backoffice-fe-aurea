@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Store,
+  ShoppingBag,
   LogOut,
   User as UserIcon,
 } from 'lucide-react';
@@ -10,11 +11,13 @@ import { useAuthStore } from '../../store/authStore';
 import { useTenantStore } from '../../store/tenantStore';
 import { Logo } from '../ui/Logo';
 import { authService } from '../../services/auth.service';
+import { useCapability } from '../../hooks/useCapability';
 
 export function Sidebar() {
   const navigate = useNavigate();
   const { user, clearAuth, isSuperadmin } = useAuthStore();
   const { currentTenant, clearTenant } = useTenantStore();
+  const { hasCapability } = useCapability();
 
   const handleLogout = async () => {
     try {
@@ -40,6 +43,12 @@ export function Sidebar() {
       path: '/tenants',
       icon: Store,
       show: isSuperadmin,
+    },
+    {
+      label: 'Catálogo',
+      path: '/catalog',
+      icon: ShoppingBag,
+      show: !isSuperadmin && hasCapability('catalog'),
     },
   ];
 

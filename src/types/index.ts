@@ -39,7 +39,8 @@ export interface TenantContext {
   vertical: string;
   role: Role;
   permissions: string[];
-  activeFeatures: FeatureKey[];
+  /** Effective feature keys returned by the backend; new modules are not a frontend compile-time change. */
+  activeFeatures: string[];
   settings?: TenantSettings | null;
 }
 
