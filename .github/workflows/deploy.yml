@@ -98,7 +98,7 @@ jobs:
 
   notify-image:
     name: Notify image
-    if: ${{ always() && needs.publish.result != 'skipped' }}
+    if: ${{ always() && needs.verify.result != 'skipped' }}
     needs: [verify, publish]
     uses: aurea-io/aurea-ci/.github/workflows/notify.yml@e4122b597ed13e5bfd444c38b248149e6feba341
     with:
