@@ -6,6 +6,7 @@ import { authService } from './services/auth.service';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { SuperadminRoute } from './components/auth/SuperadminRoute';
+import { CapabilityRoute } from './components/auth/CapabilityRoute';
 
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
@@ -15,6 +16,7 @@ import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { SuperadminTenantsPage } from './features/superadmin/SuperadminTenantsPage';
+import CatalogPage from './features/catalog/CatalogPage';
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
@@ -88,6 +90,10 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
 
+          <Route element={<CapabilityRoute capability="catalog" />}>
+            <Route path="catalog" element={<CatalogPage />} />
+          </Route>
+
           {/* Superadmin Only Routes */}
           <Route element={<SuperadminRoute />}>
             <Route path="tenants" element={<SuperadminTenantsPage />} />
@@ -103,4 +109,3 @@ function App() {
 }
 
 export default App;
-
