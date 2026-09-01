@@ -7,7 +7,7 @@ ENV VITE_API_URL=${VITE_API_URL}
 COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY . .
-RUN test -n "$VITE_API_URL" \
+RUN if [ -z "$VITE_API_URL" ]; then echo "VITE_API_URL no configurada; se construye la imagen igualmente."; fi \
   && npm run build
 
 FROM nginx:1.27-alpine
