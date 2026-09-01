@@ -70,6 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       configured: ${{ steps.config.outputs.configured }}
+      reason: ${{ steps.config.outputs.reason }}
     steps:
       - name: Check Vercel configuration
         id: config
@@ -83,6 +84,7 @@ jobs:
             echo 'configured=true' >> "$GITHUB_OUTPUT"
           else
             echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo 'reason=Faltan VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID o VITE_API_URL en la configuración de Actions.' >> "$GITHUB_OUTPUT"
             echo 'Deploy frontend omitido: faltan credenciales de Vercel o VITE_API_URL.'
           fi
       - name: Deploy to Vercel
@@ -99,7 +101,7 @@ jobs:
     name: Notify image
     if: ${{ always() && needs.verify.result != 'skipped' }}
     needs: [verify, publish]
-    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@2dcbe539976acebedec1af9b4beaddba51617225
+    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@e3f5df6082c46e81a53775e8e8dcf6fa709282dd
     with:
       event-type: image
       environment: production
@@ -118,12 +120,13 @@ jobs:
     name: Notify deploy
     if: ${{ always() && needs.deploy.result != 'skipped' }}
     needs: [publish, deploy]
-    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@2dcbe539976acebedec1af9b4beaddba51617225
+    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@e3f5df6082c46e81a53775e8e8dcf6fa709282dd
     with:
       event-type: deploy
       environment: production
       source-commit: ${{ github.sha }}
       status: ${{ needs.deploy.outputs.configured == 'true' && needs.deploy.result == 'success' && 'success' || needs.deploy.outputs.configured == 'false' && 'skipped' || 'failure' }}
+      reason: ${{ needs.deploy.outputs.reason }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
