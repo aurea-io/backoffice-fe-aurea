@@ -5,8 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  actions: write
 jobs:
   release:
-    uses: aurea-io/aurea-ci/.github/workflows/release.yml@main
+    uses: aurea-io/aurea-ci/.github/workflows/release.yml@v2
     secrets: inherit
