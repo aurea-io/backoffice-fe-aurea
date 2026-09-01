@@ -63,45 +63,33 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-    name: Deploy frontend server
+    name: Deploy frontend to Vercel
     if: ${{ vars.AUREA_DEPLOY_ENABLED == 'true' }}
     needs: publish
     runs-on: ubuntu-latest
     steps:
-      - name: Check deploy configuration
+      - name: Check Vercel configuration
         id: config
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_SSH_USER }}
-          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [[ -n "$DEPLOY_HOST" && -n "$DEPLOY_USER" && -n "$DEPLOY_KEY" ]]; then
+          if [[ -n "$VERCEL_TOKEN" && -n "$VERCEL_ORG_ID" && -n "$VERCEL_PROJECT_ID" ]]; then
             echo 'configured=true' >> "$GITHUB_OUTPUT"
           else
             echo 'configured=false' >> "$GITHUB_OUTPUT"
-            echo 'Deploy frontend omitido: faltan credenciales SSH.'
+            echo 'Deploy frontend omitido: faltan credenciales de Vercel.'
           fi
-      - uses: appleboy/ssh-action@v1.2.2
+      - name: Deploy to Vercel
         if: steps.config.outputs.configured == 'true'
         env:
-          IMAGE: ${{ env.IMAGE }}:${{ github.sha }}
-          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
-          APP_PORT: ${{ env.APP_PORT }}
-        with:
-          host: ${{ secrets.DEPLOY_SSH_HOST }}
-          username: ${{ secrets.DEPLOY_SSH_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_SSH_PORT || 22 }}
-          envs: IMAGE,CONTAINER_NAME,APP_PORT
-          script_stop: true
-          script: |
-            set -eu
-            docker pull "$IMAGE"
-            docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
-            docker run -d --name "$CONTAINER_NAME" --restart unless-stopped \
-              -p "$APP_PORT:80" "$IMAGE"
-            sleep 3
-            test "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME")" = true
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npx --yes vercel@latest link --yes --project "$VERCEL_PROJECT_ID" --scope "$VERCEL_ORG_ID" --token "$VERCEL_TOKEN"
+          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID"
 
   notify-image:
     name: Notify image
