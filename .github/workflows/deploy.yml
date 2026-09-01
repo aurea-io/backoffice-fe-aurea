@@ -65,6 +65,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
+    environment: production
     name: Deploy frontend to Vercel
     needs: publish
     runs-on: ubuntu-latest
