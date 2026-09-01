@@ -20,7 +20,7 @@ import CatalogPage from './features/catalog/CatalogPage';
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
-  const { activeTenantId, setActiveTenantId, setCurrentTenant } = useTenantStore();
+  const { activeTenantId, setActiveTenantId, setCurrentTenant, setCapabilities } = useTenantStore();
 
   // 1. Silent token refresh on initial startup
   useEffect(() => {
@@ -44,6 +44,12 @@ function App() {
               );
               if (meData.currentContext) {
                 setCurrentTenant(meData.currentContext);
+                try {
+                  const capabilities = await authService.getCapabilities(meData.currentContext.tenantId);
+                  if (isMounted) setCapabilities(capabilities.map);
+                } catch (capabilityErr) {
+                  console.error('Error fetching capabilities:', capabilityErr);
+                }
               }
             }
           } catch (ctxErr) {
@@ -66,7 +72,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [setAuth, clearAuth, setInitializing, activeTenantId, setCurrentTenant]);
+  }, [setAuth, clearAuth, setInitializing, activeTenantId, setCurrentTenant, setCapabilities]);
 
   return (
     <Routes>
