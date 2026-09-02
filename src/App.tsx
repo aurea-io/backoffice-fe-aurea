@@ -106,6 +106,7 @@ function App() {
       <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/public/:slug" element={<PublicTenantPreviewPage />} />
 
       {/* Protected App Routes */}
       <Route element={<ProtectedRoute />}>

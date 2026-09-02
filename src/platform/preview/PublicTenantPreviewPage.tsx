@@ -16,6 +16,7 @@ import {
 import { api } from '../../api/client';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import type { CatalogItem, Tenant } from '../../types';
@@ -27,25 +28,40 @@ export default function PublicTenantPreviewPage() {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<CatalogItem | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('Hoy, 16:30');
+  const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [selectedTime, setSelectedTime] = useState('16:30');
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [publicCapabilities, setPublicCapabilities] = useState<string[]>([]);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   useEffect(() => {
     async function loadPublicData() {
       setIsLoading(true);
       try {
-        // Fetch all tenants to find the matching slug
-        const res = await api.get<Tenant[]>('/superadmin/tenants');
-        const found = res.data.find((t) => t.slug === slug);
-
-        if (found) {
+        if (slug) {
+          const [bootstrapRes, catRes] = await Promise.all([
+            api.get<{ publicId: string; tenant: Pick<Tenant, 'name' | 'vertical' | 'settings'>; capabilities?: string[] }>(`/bootstrap/${encodeURIComponent(slug)}`),
+            api.get<{ items: CatalogItem[] }>(`/public/${encodeURIComponent(slug)}/catalog`),
+          ]);
+          const publicTenant = bootstrapRes.data;
+          const found = {
+            id: publicTenant.publicId,
+            slug: publicTenant.publicId,
+            name: publicTenant.tenant.name,
+            vertical: publicTenant.tenant.vertical,
+            settings: publicTenant.tenant.settings,
+            isActive: true,
+            createdAt: '',
+            updatedAt: '',
+          } as Tenant;
           setTenant(found);
-          const catRes = await api.get<CatalogItem[]>('/catalog', {
-            headers: { 'x-tenant-id': found.id },
-          });
-          setItems(catRes.data);
-          if (catRes.data.length > 0) {
-            setSelectedService(catRes.data[0]);
+          setPublicCapabilities(bootstrapRes.data.capabilities ?? []);
+          setItems(catRes.data.items);
+          if (catRes.data.items.length > 0) {
+            setSelectedService(catRes.data.items[0]);
           }
         }
       } catch (err) {
@@ -67,6 +83,28 @@ export default function PublicTenantPreviewPage() {
 
   const primaryAccent = (tenant?.settings as any)?.branding?.primaryColor || '#7c3aed';
   const isBeauty = tenant?.vertical === 'beauty';
+  const hasBookings = publicCapabilities.includes('bookings');
+
+  const submitBooking = async () => {
+    if (!slug || !selectedService || !customerName.trim() || !isBeauty) return;
+    setIsBooking(true);
+    setBookingError(null);
+    try {
+      await api.post(`/public/${encodeURIComponent(slug)}/appointments`, {
+        catalogItemId: selectedService.id,
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim() || undefined,
+        date: selectedDate,
+        startTime: selectedTime,
+        durationMin: selectedService.durationMin || undefined,
+      });
+      setBookingSuccess(true);
+    } catch (error: any) {
+      setBookingError(error.response?.data?.message || 'No se pudo confirmar la reserva. Elegí otro horario.');
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#faf8fc] dark:bg-[#090a0f] text-zinc-900 dark:text-zinc-100 font-sans pb-24">
@@ -205,7 +243,7 @@ export default function PublicTenantPreviewPage() {
             </div>
 
             {/* Right 1 Col: Booking Calendar / Cart Panel */}
-            <div className="space-y-4">
+            {hasBookings && <div className="space-y-4">
               <Card variant="glass" padding="md" className="sticky top-16 border-violet-200/80 dark:border-violet-800/40">
                 <h3 className="font-editorial text-lg font-bold text-zinc-900 dark:text-white pb-2 border-b border-zinc-100 dark:border-zinc-800">
                   {isBeauty ? 'Resumen del Turno' : 'Tu Pedido'}
@@ -234,9 +272,9 @@ export default function PublicTenantPreviewPage() {
                           <button
                             key={time}
                             type="button"
-                            onClick={() => setSelectedDate(`Hoy, ${time}`)}
+                            onClick={() => setSelectedTime(time)}
                             className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all ${
-                              selectedDate === `Hoy, ${time}`
+                              selectedTime === time
                                 ? 'bg-violet-600 text-white border-violet-600 shadow-2xs'
                                 : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
                             }`}
@@ -247,11 +285,19 @@ export default function PublicTenantPreviewPage() {
                       </div>
                     </div>
 
+                    <div className="space-y-2">
+                      <Input label="Tu nombre" value={customerName} onChange={(event) => setCustomerName(event.target.value)} required />
+                      <Input label="Email (opcional)" type="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} />
+                      {bookingError && <p className="text-xs font-medium text-rose-600">{bookingError}</p>}
+                    </div>
+
                     <Button
                       variant="primary"
                       size="lg"
                       className="w-full mt-4"
-                      onClick={() => setBookingSuccess(true)}
+                      onClick={submitBooking}
+                      isLoading={isBooking}
+                      disabled={!customerName.trim() || !isBeauty}
                     >
                       {isBeauty ? 'Confirmar Reserva' : 'Pedir Ahora'}
                     </Button>
@@ -262,7 +308,7 @@ export default function PublicTenantPreviewPage() {
                   </p>
                 )}
               </Card>
-            </div>
+            </div>}
           </div>
         )}
       </main>

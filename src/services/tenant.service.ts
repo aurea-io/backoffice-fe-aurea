@@ -1,6 +1,19 @@
 import { api } from '../api/client';
 import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent, Coupon, TableBooking, LoyaltyAccount } from '../types';
 
+export interface BrandingVersion {
+  version: number;
+  primaryColor: string;
+  accentColor: string;
+  textColor: string;
+  fontFamily: string;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  layoutTokens?: unknown;
+  overrides?: unknown;
+  createdAt: string;
+}
+
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
     const headers = tenantId ? { 'x-tenant-id': tenantId } : undefined;
@@ -10,6 +23,14 @@ export const tenantService = {
 
   async updateSettings(settings: TenantSettings): Promise<TenantContext> {
     const { data } = await api.patch<TenantContext>('/tenant/settings', { settings });
+    return data;
+  },
+  async getBrandingVersions(): Promise<BrandingVersion[]> {
+    const { data } = await api.get<BrandingVersion[]>('/tenant/branding/versions');
+    return data;
+  },
+  async rollbackBranding(version: number): Promise<BrandingVersion> {
+    const { data } = await api.post<BrandingVersion>(`/tenant/branding/rollback/${version}`);
     return data;
   },
 
