@@ -8,12 +8,14 @@ import { EmptyState } from '../../../../components/common/EmptyState';
 import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
 import { CatalogCard } from './components/CatalogCard';
 import { CatalogItemModal } from './components/CatalogItemModal';
-import type { CatalogItem, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../../../types';
+import type { CatalogCategory, CatalogItem, CatalogModifierGroup, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../../../types';
 
 export default function CatalogPage() {
   const { currentTenant, activeTenantId } = useTenantStore();
 
   const [items, setItems] = useState<CatalogItem[]>([]);
+  const [categoriesData, setCategoriesData] = useState<CatalogCategory[]>([]);
+  const [modifierGroups, setModifierGroups] = useState<CatalogModifierGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'SERVICES' | 'PRODUCTS'>('ALL');
@@ -26,8 +28,10 @@ export default function CatalogPage() {
     if (!activeTenantId) return;
     setIsLoading(true);
     try {
-      const res = await catalogService.getAll();
+      const [res, categories, modifiers] = await Promise.all([catalogService.getAll(), catalogService.getCategories(), catalogService.getModifierGroups()]);
       setItems(res);
+      setCategoriesData(categories);
+      setModifierGroups(modifiers);
     } catch (err) {
       console.error('Error fetching catalog:', err);
     } finally {
@@ -241,6 +245,17 @@ export default function CatalogPage() {
         onSave={handleSaveItem}
         itemToEdit={itemToEdit}
       />
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800/80 dark:bg-[#12131e]">
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold text-zinc-900 dark:text-white">Categorías</h2><p className="text-xs text-zinc-500">Organizá productos y servicios en niveles.</p></div><Button size="sm" variant="outline" onClick={async () => { const name = window.prompt('Nombre de la categoría'); if (name?.trim()) { await catalogService.createCategory({ name: name.trim() }); await fetchItems(); } }}> <Plus size={14} />Agregar</Button></div>
+          <div className="space-y-2">{categoriesData.map((category) => <div key={category.id} className="flex items-center justify-between rounded-xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900"><span>{category.parentId ? '↳ ' : ''}{category.name}</span><button className="text-xs text-rose-600" onClick={async () => { if (window.confirm(`¿Eliminar ${category.name}?`)) { await catalogService.removeCategory(category.id); await fetchItems(); } }}>Eliminar</button></div>)}{categoriesData.length === 0 && <p className="text-sm text-zinc-500">Todavía no hay categorías.</p>}</div>
+        </div>
+        <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800/80 dark:bg-[#12131e]">
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold text-zinc-900 dark:text-white">Modificadores</h2><p className="text-xs text-zinc-500">Grupos de opciones para productos y servicios.</p></div><Button size="sm" variant="outline" onClick={async () => { const name = window.prompt('Nombre del grupo'); if (name?.trim()) { const option = window.prompt('Primera opción (opcional)'); await catalogService.createModifierGroup({ name: name.trim(), options: option?.trim() ? [{ name: option.trim() }] : [] }); await fetchItems(); } }}><Plus size={14} />Agregar</Button></div>
+          <div className="space-y-2">{modifierGroups.map((group) => <div key={group.id} className="rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-900"><div className="flex justify-between text-sm"><span>{group.name}</span><span className="text-xs text-zinc-500">{group.minSelections}–{group.maxSelections} opciones</span></div><p className="mt-1 text-xs text-zinc-500">{group.options.map((option) => option.name).join(' · ') || 'Sin opciones cargadas'}</p></div>)}{modifierGroups.length === 0 && <p className="text-sm text-zinc-500">Todavía no hay grupos de modificadores.</p>}</div>
+        </div>
+      </section>
     </div>
   );
 }

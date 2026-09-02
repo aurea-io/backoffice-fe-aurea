@@ -148,6 +148,8 @@ export interface CatalogItem {
   description?: string | null;
   priceCents: number;
   category?: string | null;
+  categoryId?: string | null;
+  modifierGroupIds?: string[];
   isService: boolean;
   durationMin?: number | null;
   imageUrl?: string | null;
@@ -156,6 +158,10 @@ export interface CatalogItem {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface CatalogCategory { id: string; tenantId: string; name: string; slug: string; parentId?: string | null; isActive: boolean; }
+export interface CatalogModifierOption { id: string; groupId: string; name: string; priceDeltaCents: number; isActive: boolean; }
+export interface CatalogModifierGroup { id: string; tenantId: string; name: string; minSelections: number; maxSelections: number; isActive: boolean; options: CatalogModifierOption[]; }
 
 export interface CreateCatalogItemInput {
   title: string;
