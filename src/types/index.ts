@@ -138,6 +138,7 @@ export interface InventoryItem { id: string; tenantId: string; name: string; sku
 export interface RestaurantTable { id: string; number: number; seats: number; status: 'available' | 'occupied' | 'reserved' | 'billing'; }
 export interface RestaurantOrder { id: string; status: 'open' | 'preparing' | 'ready' | 'served' | 'paid' | 'canceled'; customerName?: string | null; table?: RestaurantTable | null; lines: Array<{ quantity: number; unitPriceCents: number; catalogItem?: CatalogItem }> }
 export interface CashSession { id: string; status: 'open' | 'closed'; openingCents: number; closingCents?: number | null; openedAt: string; closedAt?: string | null; notes?: string | null; }
+export interface TenantAnalytics { members: number; bookings: number; orders: number; inventoryItems: number; inventoryUnits: number; activeFeatures: number; }
 
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {
