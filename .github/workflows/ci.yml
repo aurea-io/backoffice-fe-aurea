@@ -5,6 +5,10 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   ci:
     uses: aurea-io/aurea-ci/.github/workflows/ci.yml@main
