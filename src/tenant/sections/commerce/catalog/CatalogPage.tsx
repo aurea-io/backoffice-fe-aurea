@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, Filter, UtensilsCrossed, Sparkles } from 'lucide-react';
-import { useTenantStore } from '../../store/tenantStore';
-import { catalogService } from '../../services/catalog.service';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { EmptyState } from '../../components/common/EmptyState';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { useTenantStore } from '../../../../store/tenantStore';
+import { catalogService } from '../../../../services/catalog.service';
+import { Button } from '../../../../components/ui/Button';
+import { Input } from '../../../../components/ui/Input';
+import { EmptyState } from '../../../../components/common/EmptyState';
+import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
 import { CatalogCard } from './components/CatalogCard';
 import { CatalogItemModal } from './components/CatalogItemModal';
-import type { CatalogItem, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../types';
+import type { CatalogItem, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../../../types';
 
 export default function CatalogPage() {
   const { currentTenant, activeTenantId } = useTenantStore();

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Users, UserPlus, Shield, Mail, CheckCircle2, MoreVertical } from 'lucide-react';
-import { useTenantStore } from '../../store/tenantStore';
-import { tenantService } from '../../services/tenant.service';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
-import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { useTenantStore } from '../../../store/tenantStore';
+import { tenantService } from '../../../services/tenant.service';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
+import { LoadingSpinner } from '../../../components/common/LoadingSpinner';
 import { InviteMemberModal } from './components/InviteMemberModal';
-import type { TenantMember, Role } from '../../types';
+import type { TenantMember, Role } from '../../../types';
 
 export default function MembersPage() {
   const { currentTenant, activeTenantId } = useTenantStore();
