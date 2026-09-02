@@ -6,10 +6,10 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '../../../components/ui/Dialog';
-import { Input } from '../../../components/ui/Input';
-import { Button } from '../../../components/ui/Button';
-import type { CatalogItem, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../../types';
+} from '../../../../../components/ui/Dialog';
+import { Input } from '../../../../../components/ui/Input';
+import { Button } from '../../../../../components/ui/Button';
+import type { CatalogItem, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../../../../types';
 
 interface CatalogItemModalProps {
   isOpen: boolean;

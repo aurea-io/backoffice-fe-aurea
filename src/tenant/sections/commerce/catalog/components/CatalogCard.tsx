@@ -1,8 +1,8 @@
 import { Edit3, Trash2, Clock, Check, EyeOff } from 'lucide-react';
-import { Card } from '../../../components/ui/Card';
-import { Badge } from '../../../components/ui/Badge';
-import { Button } from '../../../components/ui/Button';
-import type { CatalogItem } from '../../../types';
+import { Card } from '../../../../../components/ui/Card';
+import { Badge } from '../../../../../components/ui/Badge';
+import { Button } from '../../../../../components/ui/Button';
+import type { CatalogItem } from '../../../../../types';
 
 interface CatalogCardProps {
   item: CatalogItem;

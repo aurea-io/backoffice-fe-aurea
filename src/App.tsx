@@ -14,15 +14,15 @@ import GoogleCallbackPage from './features/auth/GoogleCallbackPage';
 import MagicLinkPage from './features/auth/MagicLinkPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
-import { DashboardPage } from './features/dashboard/DashboardPage';
-import { SuperadminTenantsPage } from './features/superadmin/SuperadminTenantsPage';
-import CatalogPage from './features/catalog/CatalogPage';
-import MembersPage from './features/members/MembersPage';
-import InvitationsPage from './features/invitations/InvitationsPage';
-import SettingsPage from './features/settings/SettingsPage';
-import PublicTenantPreviewPage from './features/preview/PublicTenantPreviewPage';
-import { SuperadminFeaturesPage } from './features/superadmin/SuperadminFeaturesPage';
-import { TenantDetailPage } from './features/superadmin/TenantDetailPage';
+import { DashboardPage } from './tenant/pages/DashboardPage';
+import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPage';
+import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
+import MembersPage from './tenant/pages/members/MembersPage';
+import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
+import SettingsPage from './tenant/pages/SettingsPage';
+import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
+import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
+import { TenantDetailPage } from './platform/superadmin/TenantDetailPage';
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
