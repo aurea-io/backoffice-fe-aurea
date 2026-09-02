@@ -24,12 +24,22 @@ import { useTenantStore } from '../../store/tenantStore';
 import { Logo } from '../ui/Logo';
 import { authService } from '../../services/auth.service';
 import { useCapability } from '../../hooks/useCapability';
+import { useDomainPermissions } from '../../hooks/useDomainPermissions';
 
 export function Sidebar() {
   const navigate = useNavigate();
   const { user, clearAuth, isSuperadmin } = useAuthStore();
   const { currentTenant, clearTenant } = useTenantStore();
   const { hasCapability, hasPermission } = useCapability();
+
+  const catalog = useDomainPermissions('catalog');
+  const appointments = useDomainPermissions('bookings');
+  const inventory = useDomainPermissions('inventory');
+  const tables = useDomainPermissions('tables');
+  const kitchen = useDomainPermissions('kitchen');
+  const clients = useDomainPermissions('clients');
+  const marketing = useDomainPermissions('marketing');
+  const pos = useDomainPermissions('pos_cashier');
 
   const handleLogout = async () => {
     try {
@@ -66,17 +76,18 @@ export function Sidebar() {
       label: 'Catálogo',
       path: '/catalog',
       icon: ShoppingBag,
-      show: !isSuperadmin && hasCapability('catalog') && hasPermission('catalog:read', 'catalog.view', 'catalog:write'),
+      show: !isSuperadmin && catalog.canRead,
     },
-    { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') && hasPermission('appointments:read', 'bookings.view') },
-    { label: 'Reservas de mesa', path: '/table-bookings', icon: CalendarClock, show: !isSuperadmin && hasCapability('bookings') && hasPermission('bookings.view', 'tables.view') },
-    { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && hasCapability('inventory') && hasPermission('inventory:read', 'inventory.manage') },
-    { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') && hasPermission('tables.view', 'tables:read', 'orders:create') },
-    { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') && hasPermission('kitchen.view', 'kitchen:read') },
-    { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && hasCapability('clients') && hasPermission('clients:read', 'clients.view') },
-    { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
-    { label: 'Fidelización', path: '/loyalty', icon: Gift, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
-    { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') && hasPermission('pos.cashier', 'pos:read') },
+    { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && appointments.canRead },
+    { label: 'Reservas de mesa', path: '/table-bookings', icon: CalendarClock, show: !isSuperadmin && appointments.canRead },
+    { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && inventory.canRead },
+    { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && tables.canRead },
+    { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && kitchen.canRead },
+    { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && clients.canRead },
+    { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && marketing.canRead },
+    { label: 'Fidelización', path: '/loyalty', icon: Gift, show: !isSuperadmin && marketing.canRead },
+    { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && pos.canRead },
+
     {
       label: 'Equipo',
       path: '/members',
