@@ -139,6 +139,7 @@ export function TenantDetailPage() {
   // ── General Tab Handlers ──────────────────────────────────────────────
   const handleSaveGeneral = async () => {
     if (!id || !tenant) return;
+    if (!window.confirm('¿Confirmás guardar los cambios de este tenant?')) return;
     setIsSavingGeneral(true);
     setGeneralSuccess(null);
     try {
@@ -165,6 +166,7 @@ export function TenantDetailPage() {
 
   const handleSaveFeatures = async () => {
     if (!id) return;
+    if (!window.confirm('¿Confirmás aplicar esta configuración de módulos? El cambio quedará auditado.')) return;
     setIsSavingFeatures(true);
     setFeatureSuccess(null);
     try {
