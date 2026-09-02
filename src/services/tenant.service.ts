@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent, Coupon, TableBooking } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent, Coupon, TableBooking, LoyaltyAccount } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -65,6 +65,8 @@ export const tenantService = {
   async getCoupons(): Promise<Coupon[]> { const { data } = await api.get<Coupon[]>('/coupons'); return data; },
   async createCoupon(input: { code: string; type: Coupon['type']; value: number; maxUses?: number; expiresAt?: string }): Promise<Coupon> { const { data } = await api.post<Coupon>('/coupons', input); return data; },
   async deactivateCoupon(id: string): Promise<Coupon> { const { data } = await api.delete<Coupon>(`/coupons/${id}`); return data; },
+  async getLoyalty(): Promise<LoyaltyAccount[]> { const { data } = await api.get<LoyaltyAccount[]>('/loyalty'); return data; },
+  async operateLoyalty(customerId: string, points: number, operation: 'earn' | 'redeem'): Promise<LoyaltyAccount> { const { data } = await api.post<LoyaltyAccount>('/loyalty/operations', { customerId, points, operation }); return data; },
 
   async addMember(email: string, role: Role = 'STAFF', permissions: string[] = []): Promise<TenantMember> {
     const { data } = await api.post<TenantMember>('/tenant/members', { email, role, permissions });

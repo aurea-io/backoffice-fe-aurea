@@ -144,6 +144,7 @@ export interface RestaurantOrder { id: string; status: 'open' | 'preparing' | 'r
 export interface CashSession { id: string; status: 'open' | 'closed'; openingCents: number; closingCents?: number | null; openedAt: string; closedAt?: string | null; notes?: string | null; }
 export interface TenantAnalytics { members: number; bookings: number; orders: number; inventoryItems: number; inventoryUnits: number; activeFeatures: number; revenueCents?: number; averageTicketCents?: number; ordersByChannel?: Record<string, number>; topProducts?: Array<{ title: string; quantity: number; revenueCents: number }>; bookingsByStatus?: Array<{ status: string; count: number }>; }
 export interface Client { id: string; name: string; email?: string | null; phone?: string | null; notes: Array<{ id: string; body: string; createdAt: string }>; _count?: { bookings: number }; }
+export interface LoyaltyAccount { id: string; customerId: string; points: number; tier: string; customer: Pick<Client, 'id' | 'name' | 'email' | 'phone'>; }
 export interface Coupon { id: string; code: string; type: 'percentage' | 'fixed'; value: number; maxUses?: number | null; usedCount: number; expiresAt?: string | null; isActive: boolean; }
 
 // ── Catalog Models ─────────────────────────────────────────────────────────

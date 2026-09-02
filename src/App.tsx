@@ -20,6 +20,7 @@ import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
 import KitchenPage from './tenant/pages/KitchenPage';
 import ClientsPage from './tenant/pages/ClientsPage';
 import CouponsPage from './tenant/pages/CouponsPage';
+import LoyaltyPage from './tenant/pages/LoyaltyPage';
 import TableBookingsPage from './tenant/pages/TableBookingsPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
@@ -122,6 +123,7 @@ function App() {
           <Route element={<CapabilityRoute capability="kitchen" permission={['kitchen.view', 'kitchen:read']} />}><Route path="kitchen" element={<KitchenPage />} /></Route>
           <Route element={<CapabilityRoute capability="clients" permission={['clients:read', 'clients.view']} />}><Route path="clients" element={<ClientsPage />} /></Route>
           <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="coupons" element={<CouponsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="loyalty" element={<LoyaltyPage />} /></Route>
           <Route element={<CapabilityRoute capability="pos_cashier" permission={['pos.cashier', 'pos:read']} />}><Route path="pos" element={<PosPage />} /></Route>
           <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
             <Route path="members" element={<MembersPage />} />

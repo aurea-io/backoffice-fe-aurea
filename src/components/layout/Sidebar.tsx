@@ -16,6 +16,7 @@ import {
   Contact,
   BadgePercent,
   CalendarClock,
+  Gift,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -74,6 +75,7 @@ export function Sidebar() {
     { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') && hasPermission('kitchen.view', 'kitchen:read') },
     { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && hasCapability('clients') && hasPermission('clients:read', 'clients.view') },
     { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
+    { label: 'Fidelización', path: '/loyalty', icon: Gift, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
     { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') && hasPermission('pos.cashier', 'pos:read') },
     {
       label: 'Equipo',
