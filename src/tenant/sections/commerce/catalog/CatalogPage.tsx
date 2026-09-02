@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Plus, Search, Filter, UtensilsCrossed, Sparkles } from 'lucide-react';
 import { useTenantStore } from '../../../../store/tenantStore';
 import { catalogService } from '../../../../services/catalog.service';
@@ -23,6 +23,7 @@ export default function CatalogPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<CatalogItem | null>(null);
+  const importInput = useRef<HTMLInputElement>(null);
 
   const fetchItems = async () => {
     if (!activeTenantId) return;
@@ -103,6 +104,7 @@ export default function CatalogPage() {
   };
 
   const isBeautyVertical = currentTenant?.vertical === 'beauty';
+  const importCsv = async (file?: File) => { if (!file) return; const result = await catalogService.importCsv(await file.text()); await fetchItems(); window.alert(`Importados: ${result.imported}. Filas válidas: ${result.validRows}. Errores: ${result.errors.length}.`); };
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
@@ -120,7 +122,7 @@ export default function CatalogPage() {
           </p>
         </div>
 
-        <Button
+        <div className="flex gap-2"><input ref={importInput} type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => importCsv(event.target.files?.[0])} /><Button variant="outline" size="md" onClick={() => importInput.current?.click()}>Importar CSV</Button><Button
           variant="primary"
           size="md"
           onClick={() => {
@@ -130,7 +132,7 @@ export default function CatalogPage() {
           leftIcon={<Plus size={16} />}
         >
           {isBeautyVertical ? 'Nuevo Servicio' : 'Nuevo Producto'}
-        </Button>
+        </Button></div>
       </div>
 
       {/* Filter and Search Bar */}

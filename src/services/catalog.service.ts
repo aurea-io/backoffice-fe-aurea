@@ -29,6 +29,7 @@ export const catalogService = {
   async remove(id: string): Promise<void> {
     await api.delete(`/catalog/${id}`);
   },
+  async importCsv(csv: string): Promise<{ imported: number; validRows: number; errors: Array<{ row: number; message: string }> }> { const { data } = await api.post('/catalog/import', { csv }); return data; },
 
   async getCategories(): Promise<CatalogCategory[]> { const { data } = await api.get<CatalogCategory[]>('/catalog/categories'); return data; },
   async createCategory(payload: { name: string; parentId?: string }): Promise<CatalogCategory> { const { data } = await api.post<CatalogCategory>('/catalog/categories', payload); return data; },
