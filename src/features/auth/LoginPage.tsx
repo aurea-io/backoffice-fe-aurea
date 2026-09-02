@@ -187,7 +187,7 @@ export default function LoginPage() {
 
               <div className="space-y-2.5">
                 <a
-                  href={`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/auth/google`}
+                  href={`${import.meta.env.VITE_API_URL || 'https://aurea-backoffice-be.onrender.com/api'}/auth/google`}
                   className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 rounded-xl text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-all shadow-xs active:scale-[0.99]"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
