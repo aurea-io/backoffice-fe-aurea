@@ -20,6 +20,7 @@ import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
 import KitchenPage from './tenant/pages/KitchenPage';
 import ClientsPage from './tenant/pages/ClientsPage';
 import CouponsPage from './tenant/pages/CouponsPage';
+import TableBookingsPage from './tenant/pages/TableBookingsPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
 import BillingPage from './tenant/pages/BillingPage';
@@ -115,6 +116,7 @@ function App() {
             <Route path="catalog" element={<CatalogPage />} />
           </Route>
           <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="bookings" permission={['bookings.view', 'tables.view']} />}><Route path="table-bookings" element={<TableBookingsPage />} /></Route>
           <Route element={<CapabilityRoute capability="inventory" permission={['inventory:read', 'inventory.manage']} />}><Route path="inventory" element={<InventoryPage />} /></Route>
           <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
           <Route element={<CapabilityRoute capability="kitchen" permission={['kitchen.view', 'kitchen:read']} />}><Route path="kitchen" element={<KitchenPage />} /></Route>

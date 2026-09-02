@@ -15,6 +15,7 @@ import {
   ChefHat,
   Contact,
   BadgePercent,
+  CalendarClock,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -67,6 +68,7 @@ export function Sidebar() {
       show: !isSuperadmin && hasCapability('catalog') && hasPermission('catalog:read', 'catalog.view', 'catalog:write'),
     },
     { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') && hasPermission('appointments:read', 'bookings.view') },
+    { label: 'Reservas de mesa', path: '/table-bookings', icon: CalendarClock, show: !isSuperadmin && hasCapability('bookings') && hasPermission('bookings.view', 'tables.view') },
     { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && hasCapability('inventory') && hasPermission('inventory:read', 'inventory.manage') },
     { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') && hasPermission('tables.view', 'tables:read', 'orders:create') },
     { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') && hasPermission('kitchen.view', 'kitchen:read') },
