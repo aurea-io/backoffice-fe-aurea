@@ -106,7 +106,7 @@ export function TenantSwitcher() {
                 type="button"
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/superadmin');
+                  navigate('/tenants');
                 }}
                 className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-colors"
               >
