@@ -139,6 +139,7 @@ export interface RestaurantTable { id: string; number: number; seats: number; st
 export interface RestaurantOrder { id: string; status: 'open' | 'preparing' | 'ready' | 'served' | 'paid' | 'canceled'; customerName?: string | null; createdAt?: string; table?: RestaurantTable | null; lines: Array<{ quantity: number; unitPriceCents: number; guestName?: string | null; catalogItem?: CatalogItem }> }
 export interface CashSession { id: string; status: 'open' | 'closed'; openingCents: number; closingCents?: number | null; openedAt: string; closedAt?: string | null; notes?: string | null; }
 export interface TenantAnalytics { members: number; bookings: number; orders: number; inventoryItems: number; inventoryUnits: number; activeFeatures: number; }
+export interface Client { id: string; name: string; email?: string | null; phone?: string | null; notes: Array<{ id: string; body: string; createdAt: string }>; _count?: { bookings: number }; }
 
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {
