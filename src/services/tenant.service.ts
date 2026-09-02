@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent, Coupon } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -59,6 +59,9 @@ export const tenantService = {
   async getClients(search?: string): Promise<Client[]> { const { data } = await api.get<Client[]>('/clients', { params: search ? { search } : undefined }); return data; },
   async createClient(input: Pick<Client, 'name' | 'email' | 'phone'>): Promise<Client> { const { data } = await api.post<Client>('/clients', input); return data; },
   async addClientNote(id: string, body: string) { const { data } = await api.post(`/clients/${id}/notes`, { body }); return data; },
+  async getCoupons(): Promise<Coupon[]> { const { data } = await api.get<Coupon[]>('/coupons'); return data; },
+  async createCoupon(input: { code: string; type: Coupon['type']; value: number; maxUses?: number; expiresAt?: string }): Promise<Coupon> { const { data } = await api.post<Coupon>('/coupons', input); return data; },
+  async deactivateCoupon(id: string): Promise<Coupon> { const { data } = await api.delete<Coupon>(`/coupons/${id}`); return data; },
 
   async addMember(email: string, role: Role = 'STAFF', permissions: string[] = []): Promise<TenantMember> {
     const { data } = await api.post<TenantMember>('/tenant/members', { email, role, permissions });

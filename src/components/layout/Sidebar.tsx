@@ -14,6 +14,7 @@ import {
   Banknote,
   ChefHat,
   Contact,
+  BadgePercent,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -70,6 +71,7 @@ export function Sidebar() {
     { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') },
     { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') },
     { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && hasCapability('clients') },
+    { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && hasCapability('marketing') },
     { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') },
     {
       label: 'Equipo',
