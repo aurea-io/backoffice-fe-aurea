@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -47,6 +47,7 @@ export const tenantService = {
 
   async getTables(): Promise<RestaurantTable[]> { const { data } = await api.get<RestaurantTable[]>('/restaurant/tables'); return data; },
   async updateTable(id: string, status: RestaurantTable['status']): Promise<RestaurantTable> { const { data } = await api.patch<RestaurantTable>(`/restaurant/tables/${id}`, { status }); return data; },
+  async getTableQr(id: string): Promise<TableQr> { const { data } = await api.get<TableQr>(`/restaurant/tables/${id}/qr`); return data; },
   async getOrders(): Promise<RestaurantOrder[]> { const { data } = await api.get<RestaurantOrder[]>('/restaurant/orders'); return data; },
   async getKitchenOrders(): Promise<RestaurantOrder[]> { const { data } = await api.get<RestaurantOrder[]>('/restaurant/kitchen'); return data; },
   async updateKitchenOrder(id: string, status: RestaurantOrder['status']): Promise<RestaurantOrder> { const { data } = await api.patch<RestaurantOrder>(`/restaurant/kitchen/orders/${id}`, { status }); return data; },
