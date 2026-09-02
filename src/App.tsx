@@ -19,6 +19,7 @@ import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPa
 import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
+import BillingPage from './tenant/pages/BillingPage';
 import SettingsPage from './tenant/pages/SettingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
 import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
@@ -112,6 +113,7 @@ function App() {
             <Route path="invitations" element={<InvitationsPage />} />
           </Route>
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings/billing" element={<BillingPage />} />
 
           {/* Superadmin Only Routes */}
           <Route element={<SuperadminRoute />}>

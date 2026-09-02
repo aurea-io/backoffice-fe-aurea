@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, Role } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Role } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -15,6 +15,11 @@ export const tenantService = {
 
   async getMembers(): Promise<TenantMember[]> {
     const { data } = await api.get<TenantMember[]>('/tenant/members');
+    return data;
+  },
+
+  async getBilling(): Promise<TenantBilling> {
+    const { data } = await api.get<TenantBilling>('/tenant/billing');
     return data;
   },
 

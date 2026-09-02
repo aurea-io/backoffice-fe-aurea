@@ -114,6 +114,14 @@ export interface TenantMember {
   };
 }
 
+export interface TenantBilling {
+  status: string;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  plan: { id: string; key: string; name: string; description?: string | null; includedFeatures: string[]; prices: Array<{ currency: string; amountCents: number; interval: string }> } | null;
+  addons: Array<{ addon: { key: string; name: string; priceCents: number; currency: string }; quantity: number }>;
+}
+
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {
   id: string;
