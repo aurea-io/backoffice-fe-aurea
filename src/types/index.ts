@@ -17,6 +17,7 @@ export interface User {
   email: string;
   name: string;
   avatarUrl?: string | null;
+  preferences?: Record<string, unknown> | null;
   isAureaSuperadmin?: boolean;
   active?: boolean;
   createdAt?: string;
