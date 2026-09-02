@@ -10,6 +10,8 @@ interface FeatureDef {
   badge: string;
   details: string;
   verticals: string[];
+  category: string;
+  requires?: string[];
 }
 
 const PLATFORM_FEATURES: FeatureDef[] = [
@@ -20,6 +22,7 @@ const PLATFORM_FEATURES: FeatureDef[] = [
     badge: 'Base',
     details: 'CRUD completo de items. Soporte para productos físicos y servicios con duración. Filtrado por categoría.',
     verticals: ['Gastronomía', 'Belleza', 'Salud', 'Comercio'],
+    category: 'Commerce',
   },
   {
     key: 'bookings',
@@ -28,6 +31,8 @@ const PLATFORM_FEATURES: FeatureDef[] = [
     badge: 'Servicios',
     details: 'Integración con agenda. Notificaciones por email/WhatsApp. Confirmación y cancelación automática.',
     verticals: ['Belleza', 'Salud', 'Servicios'],
+    category: 'Services',
+    requires: ['catalog'],
   },
   {
     key: 'tables',
@@ -36,6 +41,8 @@ const PLATFORM_FEATURES: FeatureDef[] = [
     badge: 'Gastronomía',
     details: 'Layout de salón visual. QR por mesa. Pedidos asociados a cada mesa. Cierre de cuenta parcial o total.',
     verticals: ['Gastronomía', 'Bares'],
+    category: 'Operations',
+    requires: ['catalog'],
   },
   {
     key: 'delivery',
@@ -44,6 +51,8 @@ const PLATFORM_FEATURES: FeatureDef[] = [
     badge: 'Comercio',
     details: 'Flujo de checkout. Zonas de envío. Métodos de pago configurables. Confirmación por WhatsApp.',
     verticals: ['Gastronomía', 'Comercio', 'Pastelería'],
+    category: 'Commerce',
+    requires: ['catalog'],
   },
   {
     key: 'reviews',
@@ -52,6 +61,7 @@ const PLATFORM_FEATURES: FeatureDef[] = [
     badge: 'Fidelización',
     details: 'Rating de 1-5 estrellas. Comentarios moderados. Integración en la landing pública del comercio.',
     verticals: ['Todos'],
+    category: 'Engagement',
   },
   {
     key: 'social_hub',
@@ -60,6 +70,7 @@ const PLATFORM_FEATURES: FeatureDef[] = [
     badge: 'Marketing',
     details: 'Landing personalizada con branding. Links configurables. QR y NFC para acceso rápido.',
     verticals: ['Todos'],
+    category: 'Marketing',
   },
 ];
 
@@ -110,6 +121,11 @@ export function SuperadminFeaturesPage() {
               <Badge variant="violet" size="sm">
                 {feature.badge}
               </Badge>
+            </div>
+
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+              <span>{feature.category}</span>
+              {feature.requires && <span>· Requiere: {feature.requires.join(', ')}</span>}
             </div>
 
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
