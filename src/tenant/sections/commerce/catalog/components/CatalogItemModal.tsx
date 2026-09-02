@@ -27,6 +27,8 @@ export function CatalogItemModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [sku, setSku] = useState('');
+  const [stockInitial, setStockInitial] = useState('');
   const [category, setCategory] = useState('');
   const [isService, setIsService] = useState(false);
   const [durationMin, setDurationMin] = useState('30');
@@ -41,6 +43,8 @@ export function CatalogItemModal({
       setTitle(itemToEdit.title);
       setDescription(itemToEdit.description || '');
       setPrice((itemToEdit.priceCents / 100).toString());
+      setSku(itemToEdit.sku || '');
+      setStockInitial(itemToEdit.stockInitial?.toString() || '');
       setCategory(itemToEdit.category || '');
       setIsService(itemToEdit.isService);
       setDurationMin(itemToEdit.durationMin ? itemToEdit.durationMin.toString() : '30');
@@ -50,6 +54,8 @@ export function CatalogItemModal({
       setTitle('');
       setDescription('');
       setPrice('');
+      setSku('');
+      setStockInitial('');
       setCategory('');
       setIsService(false);
       setDurationMin('30');
@@ -80,6 +86,8 @@ export function CatalogItemModal({
         title: title.trim(),
         description: description.trim() || undefined,
         priceCents: Math.round(priceNum * 100),
+        sku: sku.trim() || undefined,
+        stockInitial: stockInitial ? Number(stockInitial) : undefined,
         category: category.trim() || undefined,
         isService,
         durationMin: isService ? parseInt(durationMin, 10) || 30 : undefined,
@@ -179,6 +187,11 @@ export function CatalogItemModal({
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="SKU (opcional)" placeholder="Ej: PROD-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+            {!isService && <Input label="Stock inicial" type="number" min="0" step="0.01" placeholder="0" value={stockInitial} onChange={(e) => setStockInitial(e.target.value)} />}
           </div>
 
           {isService && (

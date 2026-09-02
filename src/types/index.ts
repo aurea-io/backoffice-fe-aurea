@@ -152,6 +152,9 @@ export interface CatalogItem {
   title: string;
   description?: string | null;
   priceCents: number;
+  sku?: string | null;
+  stockInitial?: number | null;
+  professionalId?: string | null;
   category?: string | null;
   categoryId?: string | null;
   modifierGroupIds?: string[];
@@ -172,6 +175,9 @@ export interface CreateCatalogItemInput {
   title: string;
   description?: string;
   priceCents: number;
+  sku?: string;
+  stockInitial?: number;
+  professionalId?: string;
   category?: string;
   isService?: boolean;
   durationMin?: number;
