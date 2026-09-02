@@ -1,8 +1,8 @@
 name: Build and deploy frontend
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
@@ -39,6 +41,8 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
@@ -94,11 +98,30 @@ jobs:
           # Deploy Hook creates the production deployment through Vercel's Git integration.
           curl --fail --silent --show-error --retry 3 --retry-delay 2 -X POST "$VERCEL_DEPLOY_HOOK_URL"
 
+  smoke-test:
+    name: Smoke test frontend
+    if: ${{ always() && needs.deploy.result == 'success' }}
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      FRONTEND_URL: ${{ vars.FRONTEND_URL || 'https://backoffice-fe-aurea.vercel.app' }}
+    steps:
+      - name: Wait for frontend response
+        run: |
+          set -euo pipefail
+          for attempt in {1..16}; do
+            if curl --fail --silent --show-error --max-time 15 "${FRONTEND_URL}/" >/dev/null; then exit 0; fi
+            sleep 15
+          done
+          echo "Frontend smoke test failed at ${FRONTEND_URL}/" >&2
+          exit 1
+
   notify-image:
     name: Notify image
     if: ${{ always() && needs.verify.result != 'skipped' }}
     needs: [verify, publish]
-    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@85ebac96fbed95ec84ddd639732c787166636301
+    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@v3
     with:
       event-type: image
       environment: production
@@ -117,16 +140,16 @@ jobs:
   notify-deploy:
     name: Notify deploy
     if: ${{ always() && needs.deploy.result != 'skipped' }}
-    needs: [publish, deploy]
-    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@85ebac96fbed95ec84ddd639732c787166636301
+    needs: [publish, deploy, smoke-test]
+    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@v3
     with:
       event-type: deploy
       environment: production
       version: latest
       source-commit: ${{ github.sha }}
       commit-message: ${{ github.event.head_commit.message || 'workflow dispatch' }}
-      status: ${{ needs.deploy.outputs.configured == 'true' && needs.deploy.result == 'success' && 'success' || needs.deploy.outputs.configured == 'false' && 'skipped' || 'failure' }}
-      reason: ${{ needs.deploy.outputs.reason }}
+      status: ${{ needs.deploy.outputs.configured == 'false' && 'skipped' || needs.smoke-test.result == 'success' && 'success' || 'failure' }}
+      reason: ${{ needs.deploy.outputs.configured == 'false' && needs.deploy.outputs.reason || needs.smoke-test.result == 'failure' && 'El smoke test del frontend falló.' || '' }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
