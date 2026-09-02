@@ -79,7 +79,7 @@ export function SuperadminFeaturesPage() {
     (groups[feature.category] ||= []).push(feature);
     return groups;
   }, {});
-  const featureNames = new Map(PLATFORM_FEATURES.map((feature) => [feature.key, feature.name]));
+  const featureNames = new Map<FeatureKey, string>(PLATFORM_FEATURES.map((feature) => [feature.key, feature.name]));
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in-50 duration-200">
@@ -139,7 +139,7 @@ export function SuperadminFeaturesPage() {
                     <span>{feature.category}</span>
                     {feature.requires && (
                       <span>
-                        · Requiere: {feature.requires.map((key) => featureNames.get(key) ?? key).join(', ')}
+                        · Requiere: {feature.requires.map((key) => featureNames.get(key as FeatureKey) ?? key).join(', ')}
                       </span>
                     )}
                   </div>
