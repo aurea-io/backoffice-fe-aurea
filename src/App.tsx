@@ -6,6 +6,7 @@ import { authService } from './services/auth.service';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { SuperadminRoute } from './components/auth/SuperadminRoute';
+import { InternalPlatformRedirect } from './components/auth/InternalPlatformRedirect';
 import { CapabilityRoute } from './components/auth/CapabilityRoute';
 
 import LoginPage from './features/auth/LoginPage';
@@ -15,7 +16,6 @@ import MagicLinkPage from './features/auth/MagicLinkPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './tenant/pages/DashboardPage';
-import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPage';
 import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
 import KitchenPage from './tenant/pages/KitchenPage';
 import ClientsPage from './tenant/pages/ClientsPage';
@@ -25,15 +25,12 @@ import TableBookingsPage from './tenant/pages/TableBookingsPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
 import BillingPage from './tenant/pages/BillingPage';
-import SuperadminPlansPage from './platform/superadmin/SuperadminPlansPage';
 import AppointmentsPage from './tenant/pages/AppointmentsPage';
 import InventoryPage from './tenant/pages/InventoryPage';
 import RestaurantPage from './tenant/pages/RestaurantPage';
 import PosPage from './tenant/pages/PosPage';
 import SettingsPage from './tenant/pages/SettingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
-import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
-import { TenantDetailPage } from './platform/superadmin/TenantDetailPage';
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
@@ -137,12 +134,12 @@ function App() {
 
           {/* Superadmin Only Routes */}
           <Route element={<SuperadminRoute />}>
-            <Route path="tenants" element={<SuperadminTenantsPage />} />
-            <Route path="tenants/:id" element={<TenantDetailPage />} />
-            <Route path="superadmin/features" element={<SuperadminFeaturesPage />} />
-            <Route path="superadmin/plans" element={<SuperadminPlansPage />} />
+            <Route path="tenants" element={<InternalPlatformRedirect />} />
+            <Route path="tenants/:id" element={<InternalPlatformRedirect />} />
+            <Route path="superadmin/features" element={<InternalPlatformRedirect />} />
+            <Route path="superadmin/plans" element={<InternalPlatformRedirect />} />
             <Route path="preview/:tenantId" element={<PublicTenantPreviewPage />} />
-            <Route path="superadmin/tenants" element={<Navigate to="/tenants" replace />} />
+            <Route path="superadmin/tenants" element={<InternalPlatformRedirect />} />
           </Route>
         </Route>
       </Route>
