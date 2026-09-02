@@ -17,6 +17,12 @@ import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { SuperadminTenantsPage } from './features/superadmin/SuperadminTenantsPage';
 import CatalogPage from './features/catalog/CatalogPage';
+import MembersPage from './features/members/MembersPage';
+import InvitationsPage from './features/invitations/InvitationsPage';
+import SettingsPage from './features/settings/SettingsPage';
+import PublicTenantPreviewPage from './features/preview/PublicTenantPreviewPage';
+import { SuperadminFeaturesPage } from './features/superadmin/SuperadminFeaturesPage';
+import { TenantDetailPage } from './features/superadmin/TenantDetailPage';
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
@@ -99,10 +105,20 @@ function App() {
           <Route element={<CapabilityRoute capability="catalog" />}>
             <Route path="catalog" element={<CatalogPage />} />
           </Route>
+          <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
+            <Route path="members" element={<MembersPage />} />
+          </Route>
+          <Route element={<CapabilityRoute capability="tenant:employees:manage" />}>
+            <Route path="invitations" element={<InvitationsPage />} />
+          </Route>
+          <Route path="settings" element={<SettingsPage />} />
 
           {/* Superadmin Only Routes */}
           <Route element={<SuperadminRoute />}>
             <Route path="tenants" element={<SuperadminTenantsPage />} />
+            <Route path="tenants/:id" element={<TenantDetailPage />} />
+            <Route path="superadmin/features" element={<SuperadminFeaturesPage />} />
+            <Route path="preview/:tenantId" element={<PublicTenantPreviewPage />} />
             <Route path="superadmin/tenants" element={<Navigate to="/tenants" replace />} />
           </Route>
         </Route>

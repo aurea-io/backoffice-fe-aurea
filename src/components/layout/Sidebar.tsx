@@ -3,6 +3,9 @@ import {
   LayoutDashboard,
   Store,
   ShoppingBag,
+  Users,
+  MailPlus,
+  Settings,
   LogOut,
   User as UserIcon,
 } from 'lucide-react';
@@ -49,6 +52,24 @@ export function Sidebar() {
       path: '/catalog',
       icon: ShoppingBag,
       show: !isSuperadmin && hasCapability('catalog'),
+    },
+    {
+      label: 'Equipo',
+      path: '/members',
+      icon: Users,
+      show: !isSuperadmin && hasCapability('tenant:employees:read'),
+    },
+    {
+      label: 'Invitaciones',
+      path: '/invitations',
+      icon: MailPlus,
+      show: !isSuperadmin && hasCapability('tenant:employees:manage'),
+    },
+    {
+      label: 'Configuración',
+      path: '/settings',
+      icon: Settings,
+      show: !isSuperadmin && Boolean(currentTenant),
     },
   ];
 
