@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Store, User, Sparkles, Check, Globe, Phone, MapPin, Instagram } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useTenantStore } from '../../store/tenantStore';
-import { tenantService } from '../../services/tenant.service';
+import { BrandingVersion, tenantService } from '../../services/tenant.service';
 import { authService } from '../../services/auth.service';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -25,7 +25,8 @@ export default function SettingsPage() {
   const [city, setCity] = useState('');
   const [instagram, setInstagram] = useState('');
   const [schedule, setSchedule] = useState('');
-  const [brandingVersions, setBrandingVersions] = useState<Array<{ version: number; primaryColor: string; accentColor: string; createdAt: string }>>([]);
+  const [brandingVersions, setBrandingVersions] = useState<BrandingVersion[]>([]);
+  const [isRollingBack, setIsRollingBack] = useState(false);
 
   // User profile state
   const [userName, setUserName] = useState(user?.name || '');
@@ -38,6 +39,8 @@ export default function SettingsPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
+    setBrandingVersions([]);
     if (currentTenant) {
       const s = (currentTenant.settings || {}) as TenantSettings;
       setPrimaryColor(s.branding?.primaryColor || '#7c3aed');
@@ -48,8 +51,13 @@ export default function SettingsPage() {
       setCity(s.contact?.city || '');
       setInstagram(s.contact?.instagram || '');
       setSchedule(s.schedule?.hours || '');
-      tenantService.getBrandingVersions().then(setBrandingVersions).catch(() => setBrandingVersions([]));
+      tenantService.getBrandingVersions().then((versions) => {
+        if (active) setBrandingVersions(versions);
+      }).catch(() => {
+        if (active) setBrandingVersions([]);
+      });
     }
+    return () => { active = false; };
   }, [currentTenant]);
 
   const handleSaveBusiness = async (e: React.FormEvent) => {
@@ -87,13 +95,24 @@ export default function SettingsPage() {
   };
 
   const handleRollback = async (version: number) => {
+    if (isRollingBack) return;
     if (!window.confirm(`¿Restaurar la versión ${version} del branding?`)) return;
+    setIsRollingBack(true);
     try {
-      const updated = await tenantService.rollbackBranding(version);
-      setBrandingVersions((versions) => [updated, ...versions.filter((item) => item.version !== updated.version)].slice(0, 4));
+      await tenantService.rollbackBranding(version);
+      const [updatedTenant, versions] = await Promise.all([
+        tenantService.getContext(activeTenantId || undefined),
+        tenantService.getBrandingVersions(),
+      ]);
+      setCurrentTenant(updatedTenant);
+      setBrandingVersions(versions);
+      const restored = (updatedTenant.settings || {}) as TenantSettings;
+      setPrimaryColor(restored.branding?.primaryColor || '#7c3aed');
       setSuccessMessage(`Branding restaurado desde la versión ${version}.`);
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || 'No se pudo restaurar el branding.');
+    } finally {
+      setIsRollingBack(false);
     }
   };
 
@@ -225,7 +244,7 @@ export default function SettingsPage() {
                   <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Versiones publicadas</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {brandingVersions.map((version) => (
-                      <button key={version.version} type="button" onClick={() => handleRollback(version.version)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[11px] text-zinc-600 hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-300">
+                      <button key={version.version} type="button" disabled={isRollingBack} onClick={() => handleRollback(version.version)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[11px] text-zinc-600 hover:border-violet-400 hover:text-violet-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300">
                         v{version.version} · restaurar
                       </button>
                     ))}
