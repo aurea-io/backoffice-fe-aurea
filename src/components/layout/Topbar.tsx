@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { Badge } from '../ui/Badge';
+import { TenantSwitcher } from '../common/TenantSwitcher';
 
 export function Topbar() {
   const location = useLocation();
@@ -30,6 +31,10 @@ export function Topbar() {
 
       {/* Actions */}
       <div className="flex items-center gap-2 sm:gap-3">
+        <div className="w-48 sm:w-56">
+          <TenantSwitcher />
+        </div>
+
         <Badge variant="emerald" size="sm" dot className="hidden sm:inline-flex">
           En línea
         </Badge>
