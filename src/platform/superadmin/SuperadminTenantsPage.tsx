@@ -551,7 +551,7 @@ export function SuperadminTenantsPage() {
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-800 dark:text-rose-300 space-y-1">
             <p className="font-semibold">⚠️ Acción irreversible:</p>
             <p>
-              Se purgarán de la base de datos todas las configuraciones, módulos asignados, miembros vinculados e invitaciones pendientes asociadas a este tenant.
+              El tenant se archivará y dejará de estar operativo. Sus configuraciones, módulos, miembros e invitaciones se conservarán para auditoría y recuperación.
             </p>
           </div>
 

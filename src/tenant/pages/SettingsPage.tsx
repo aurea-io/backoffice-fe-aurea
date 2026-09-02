@@ -29,6 +29,8 @@ export default function SettingsPage() {
   // User profile state
   const [userName, setUserName] = useState(user?.name || '');
   const [userAvatar, setUserAvatar] = useState(user?.avatarUrl || '');
+  const [emailNotifications, setEmailNotifications] = useState(user?.preferences?.emailNotifications !== false);
+  const [whatsappNotifications, setWhatsappNotifications] = useState(user?.preferences?.whatsappNotifications !== false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -92,6 +94,7 @@ export default function SettingsPage() {
       const updated = await authService.updateProfile({
         name: userName,
         avatarUrl: userAvatar,
+        preferences: { emailNotifications, whatsappNotifications },
       });
       updateUser(updated);
       setSuccessMessage('¡Perfil actualizado con éxito!');
@@ -322,6 +325,8 @@ export default function SettingsPage() {
                 onChange={(e) => setUserAvatar(e.target.value)}
               />
             </CardContent>
+
+            <CardContent className="space-y-3"><h3 className="text-sm font-semibold">Preferencias</h3><label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={emailNotifications} onChange={(e) => setEmailNotifications(e.target.checked)} />Recibir confirmaciones por email</label><label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={whatsappNotifications} onChange={(e) => setWhatsappNotifications(e.target.checked)} />Recibir confirmaciones por WhatsApp</label></CardContent>
 
             <CardFooter>
               <Button type="submit" variant="primary" size="md" isLoading={isSaving}>

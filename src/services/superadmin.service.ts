@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { Tenant, TenantFeature } from '../types';
+import type { Tenant, TenantFeature, Plan } from '../types';
 
 export interface CreateTenantPayload {
   name: string;
@@ -19,6 +19,16 @@ export interface UpdateTenantPayload {
 }
 
 export const superadminService = {
+  async getPlans(): Promise<Plan[]> {
+    const { data } = await api.get<Plan[]>('/superadmin/plans');
+    return data;
+  },
+
+  async createPlan(input: { key: string; name: string; description?: string; includedFeatures: string[]; prices: Array<{ currency: string; amountCents: number; interval: string }> }): Promise<Plan> {
+    const { data } = await api.post<Plan>('/superadmin/plans', input);
+    return data;
+  },
+
   async getAllTenants(): Promise<Tenant[]> {
     const { data } = await api.get<Tenant[]>('/superadmin/tenants');
     return data;

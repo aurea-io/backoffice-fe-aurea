@@ -27,6 +27,8 @@ export function CatalogItemModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [sku, setSku] = useState('');
+  const [stockInitial, setStockInitial] = useState('');
   const [category, setCategory] = useState('');
   const [isService, setIsService] = useState(false);
   const [durationMin, setDurationMin] = useState('30');
@@ -36,11 +38,15 @@ export function CatalogItemModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const optimizeImage = (file: File) => new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => { const image = new Image(); image.onload = () => { const scale = Math.min(1, 1600 / Math.max(image.width, image.height)); const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(image.width * scale)); canvas.height = Math.max(1, Math.round(image.height * scale)); canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/webp', 0.82)); }; image.onerror = reject; image.src = String(reader.result); }; reader.onerror = reject; reader.readAsDataURL(file); });
+
   useEffect(() => {
     if (itemToEdit) {
       setTitle(itemToEdit.title);
       setDescription(itemToEdit.description || '');
       setPrice((itemToEdit.priceCents / 100).toString());
+      setSku(itemToEdit.sku || '');
+      setStockInitial(itemToEdit.stockInitial?.toString() || '');
       setCategory(itemToEdit.category || '');
       setIsService(itemToEdit.isService);
       setDurationMin(itemToEdit.durationMin ? itemToEdit.durationMin.toString() : '30');
@@ -50,6 +56,8 @@ export function CatalogItemModal({
       setTitle('');
       setDescription('');
       setPrice('');
+      setSku('');
+      setStockInitial('');
       setCategory('');
       setIsService(false);
       setDurationMin('30');
@@ -80,6 +88,8 @@ export function CatalogItemModal({
         title: title.trim(),
         description: description.trim() || undefined,
         priceCents: Math.round(priceNum * 100),
+        sku: sku.trim() || undefined,
+        stockInitial: stockInitial ? Number(stockInitial) : undefined,
         category: category.trim() || undefined,
         isService,
         durationMin: isService ? parseInt(durationMin, 10) || 30 : undefined,
@@ -149,6 +159,8 @@ export function CatalogItemModal({
             required
           />
 
+          <div className="space-y-1.5"><label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">Cargar imagen optimizada (opcional)</label><input type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { setImageUrl(await optimizeImage(file)); } catch { setError('No se pudo procesar la imagen.'); } }} className="block w-full text-xs text-zinc-500 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-50 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-violet-700" /><p className="text-[10px] text-zinc-400">Se redimensiona a un máximo de 1600 px y se comprime antes de guardar.</p></div>
+
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               Descripción
@@ -181,6 +193,11 @@ export function CatalogItemModal({
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="SKU (opcional)" placeholder="Ej: PROD-001" value={sku} onChange={(e) => setSku(e.target.value)} />
+            {!isService && <Input label="Stock inicial" type="number" min="0" step="0.01" placeholder="0" value={stockInitial} onChange={(e) => setStockInitial(e.target.value)} />}
+          </div>
+
           {isService && (
             <Input
               label="Duración (minutos)"
@@ -193,7 +210,7 @@ export function CatalogItemModal({
 
           <Input
             label="URL de Imagen (opcional)"
-            type="url"
+            type={imageUrl.startsWith('data:') ? 'text' : 'url'}
             placeholder="https://..."
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}

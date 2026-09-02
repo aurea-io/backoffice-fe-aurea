@@ -47,7 +47,7 @@ export const authService = {
     return data;
   },
 
-  async updateProfile(payload: { name?: string; avatarUrl?: string }): Promise<User> {
+  async updateProfile(payload: { name?: string; avatarUrl?: string; preferences?: Record<string, unknown> }): Promise<User> {
     const { data } = await api.patch<User>('/auth/profile', payload);
     return data;
   },

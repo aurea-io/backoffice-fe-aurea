@@ -19,16 +19,19 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import type { Tenant } from '../../types';
+import { tenantService } from '../../services/tenant.service';
+import type { TenantAnalytics } from '../../types';
 
 export function DashboardPage() {
   const { user, isSuperadmin, tenants: userTenants } = useAuthStore();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<TenantAnalytics | null>(null);
 
   useEffect(() => {
     async function loadData() {
       if (!isSuperadmin) {
-        setIsLoading(false);
+        tenantService.getAnalytics().then(setAnalytics).catch(() => undefined).finally(() => setIsLoading(false));
         return;
       }
 
@@ -133,6 +136,7 @@ export function DashboardPage() {
                   </a>
                 </div>
               </Card>
+              {analytics && <><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Miembros</p><strong className="text-2xl">{analytics.members}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Reservas</p><strong className="text-2xl">{analytics.bookings}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Pedidos</p><strong className="text-2xl">{analytics.orders}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Artículos stock</p><strong className="text-2xl">{analytics.inventoryItems}</strong></Card></div><div className="grid gap-4 sm:grid-cols-2"><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Facturación registrada</p><strong className="text-2xl">$ {(analytics.revenueCents || 0) / 100}</strong><p className="text-xs text-zinc-500">Ticket promedio: $ {((analytics.averageTicketCents || 0) / 100).toLocaleString('es-AR')}</p></Card><Card variant="glass" padding="sm"><p className="mb-2 text-xs text-zinc-500">Productos más vendidos</p>{analytics.topProducts?.slice(0, 3).map((product) => <div key={product.title} className="flex justify-between text-sm"><span>{product.title}</span><strong>{product.quantity}</strong></div>) || <p className="text-xs text-zinc-500">Sin ventas todavía</p>}</Card></div></>}
             </div>
 
             {/* Account Details */}

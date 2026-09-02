@@ -17,8 +17,19 @@ import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './tenant/pages/DashboardPage';
 import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPage';
 import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
+import KitchenPage from './tenant/pages/KitchenPage';
+import ClientsPage from './tenant/pages/ClientsPage';
+import CouponsPage from './tenant/pages/CouponsPage';
+import LoyaltyPage from './tenant/pages/LoyaltyPage';
+import TableBookingsPage from './tenant/pages/TableBookingsPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
+import BillingPage from './tenant/pages/BillingPage';
+import SuperadminPlansPage from './platform/superadmin/SuperadminPlansPage';
+import AppointmentsPage from './tenant/pages/AppointmentsPage';
+import InventoryPage from './tenant/pages/InventoryPage';
+import RestaurantPage from './tenant/pages/RestaurantPage';
+import PosPage from './tenant/pages/PosPage';
 import SettingsPage from './tenant/pages/SettingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
 import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
@@ -102,9 +113,18 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
 
-          <Route element={<CapabilityRoute capability="catalog" />}>
+          <Route element={<CapabilityRoute capability="catalog" permission={['catalog:read', 'catalog.view', 'catalog:write']} />}>
             <Route path="catalog" element={<CatalogPage />} />
           </Route>
+          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="bookings" permission={['bookings.view', 'tables.view']} />}><Route path="table-bookings" element={<TableBookingsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="inventory" permission={['inventory:read', 'inventory.manage']} />}><Route path="inventory" element={<InventoryPage />} /></Route>
+          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
+          <Route element={<CapabilityRoute capability="kitchen" permission={['kitchen.view', 'kitchen:read']} />}><Route path="kitchen" element={<KitchenPage />} /></Route>
+          <Route element={<CapabilityRoute capability="clients" permission={['clients:read', 'clients.view']} />}><Route path="clients" element={<ClientsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="coupons" element={<CouponsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="loyalty" element={<LoyaltyPage />} /></Route>
+          <Route element={<CapabilityRoute capability="pos_cashier" permission={['pos.cashier', 'pos:read']} />}><Route path="pos" element={<PosPage />} /></Route>
           <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
             <Route path="members" element={<MembersPage />} />
           </Route>
@@ -112,12 +132,14 @@ function App() {
             <Route path="invitations" element={<InvitationsPage />} />
           </Route>
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="settings/billing" element={<BillingPage />} />
 
           {/* Superadmin Only Routes */}
           <Route element={<SuperadminRoute />}>
             <Route path="tenants" element={<SuperadminTenantsPage />} />
             <Route path="tenants/:id" element={<TenantDetailPage />} />
             <Route path="superadmin/features" element={<SuperadminFeaturesPage />} />
+            <Route path="superadmin/plans" element={<SuperadminPlansPage />} />
             <Route path="preview/:tenantId" element={<PublicTenantPreviewPage />} />
             <Route path="superadmin/tenants" element={<Navigate to="/tenants" replace />} />
           </Route>
