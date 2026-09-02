@@ -96,6 +96,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
         run: |
           if [[ -n "$VERCEL_TOKEN" && -n "$VERCEL_ORG_ID" && -n "$VERCEL_PROJECT_ID" && -n "$VITE_API_URL" ]]; then
             echo 'configured=true' >> "$GITHUB_OUTPUT"
@@ -115,7 +116,7 @@ jobs:
           set -euo pipefail
           mkdir -p .vercel
           jq -n --arg project "$VERCEL_PROJECT_ID" --arg org "$VERCEL_ORG_ID" '{projectId: $project, orgId: $org}' > .vercel/project.json
-          response="$(npx --yes vercel@latest deploy --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --json)"
+          response="$(npx --yes vercel@41.7.3 deploy --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --json --build-env "VITE_API_URL=${VITE_API_URL}")"
           url="$(jq -r '.url // empty' <<<"$response")"
           [[ -n "$url" ]] || { echo 'Vercel no devolvió la URL de deployment.' >&2; exit 1; }
           echo "url=https://${url#https://}" >> "$GITHUB_OUTPUT"
