@@ -121,6 +121,7 @@ export interface TenantBilling {
   plan: { id: string; key: string; name: string; description?: string | null; includedFeatures: string[]; prices: Array<{ currency: string; amountCents: number; interval: string }> } | null;
   addons: Array<{ addon: { key: string; name: string; priceCents: number; currency: string }; quantity: number }>;
 }
+export interface PaymentIntent { id: string; status: string; provider: string; checkoutUrl?: string | null; mode?: string; }
 
 export interface Plan {
   id: string; key: string; name: string; description?: string | null; isActive: boolean;

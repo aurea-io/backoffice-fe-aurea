@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -22,6 +22,7 @@ export const tenantService = {
     const { data } = await api.get<TenantBilling>('/tenant/billing');
     return data;
   },
+  async createPaymentIntent(input: { provider: 'mercadopago' | 'stripe' | 'manual'; amountCents: number; currency: string; referenceType: string; referenceId: string; returnUrl?: string }): Promise<PaymentIntent> { const { data } = await api.post<PaymentIntent>('/payments/intents', input); return data; },
 
   async getBookings(from?: string, to?: string): Promise<Booking[]> {
     const { data } = await api.get<Booking[]>('/appointments', { params: { from, to } });
