@@ -34,8 +34,8 @@ export default function MembersPage() {
     fetchMembers();
   }, [activeTenantId]);
 
-  const handleInvite = async (email: string, role: Role) => {
-    await tenantService.addMember(email, role);
+  const handleInvite = async (email: string, role: Role, permissions?: string[]) => {
+    await tenantService.addMember(email, role, permissions);
     await fetchMembers();
   };
 

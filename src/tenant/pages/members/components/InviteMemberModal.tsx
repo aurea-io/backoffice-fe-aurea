@@ -11,11 +11,13 @@ import {
 import { Input } from '../../../../components/ui/Input';
 import { Button } from '../../../../components/ui/Button';
 import type { Role } from '../../../../types';
+import { useTenantStore } from '../../../../store/tenantStore';
+import { ROLE_PRESETS } from '../presets.config';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onInvite: (email: string, role: Role) => Promise<void>;
+  onInvite: (email: string, role: Role, permissions?: string[]) => Promise<void>;
 }
 
 export function InviteMemberModal({
@@ -27,6 +29,9 @@ export function InviteMemberModal({
   const [role, setRole] = useState<Role>('STAFF');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { currentTenant } = useTenantStore();
+  const presets = ROLE_PRESETS[currentTenant?.vertical || 'general'] || ROLE_PRESETS.general;
+  const selectedPreset = presets.find((preset) => preset.role === role);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +44,7 @@ export function InviteMemberModal({
     setError(null);
 
     try {
-      await onInvite(email.trim(), role);
+      await onInvite(email.trim(), role, selectedPreset?.permissions);
       setEmail('');
       onClose();
     } catch (err: any) {
@@ -104,6 +109,7 @@ export function InviteMemberModal({
             <p className="text-[11px] text-zinc-400 mt-1">
               {roleDescriptions[role]}
             </p>
+            {selectedPreset && <p className="text-[11px] text-violet-600 dark:text-violet-400 mt-1">Preset: {selectedPreset.label} · {selectedPreset.permissions.join(', ')}</p>}
           </div>
 
           <DialogFooter>

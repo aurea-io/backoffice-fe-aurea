@@ -23,8 +23,8 @@ export const tenantService = {
     return data;
   },
 
-  async addMember(email: string, role: Role = 'STAFF'): Promise<TenantMember> {
-    const { data } = await api.post<TenantMember>('/tenant/members', { email, role });
+  async addMember(email: string, role: Role = 'STAFF', permissions: string[] = []): Promise<TenantMember> {
+    const { data } = await api.post<TenantMember>('/tenant/members', { email, role, permissions });
     return data;
   },
 
