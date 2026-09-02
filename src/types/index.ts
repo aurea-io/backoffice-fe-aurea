@@ -134,6 +134,8 @@ export interface Booking {
   catalogItem?: CatalogItem;
 }
 
+export interface InventoryItem { id: string; tenantId: string; name: string; sku?: string | null; unit: string; quantity: number; minimum: number; costCents: number; isActive: boolean; }
+
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {
   id: string;

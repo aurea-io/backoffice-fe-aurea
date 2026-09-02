@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Booking, Role } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Booking, InventoryItem, Role } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -31,6 +31,18 @@ export const tenantService = {
   async updateBooking(id: string, input: Partial<Pick<Booking, 'status' | 'paymentStatus'>>): Promise<Booking> {
     const { data } = await api.patch<Booking>(`/appointments/${id}`, input);
     return data;
+  },
+
+  async getInventory(): Promise<InventoryItem[]> {
+    const { data } = await api.get<InventoryItem[]>('/inventory'); return data;
+  },
+
+  async createInventory(input: Pick<InventoryItem, 'name' | 'quantity'> & Partial<Pick<InventoryItem, 'unit' | 'minimum' | 'costCents'>>): Promise<InventoryItem> {
+    const { data } = await api.post<InventoryItem>('/inventory', input); return data;
+  },
+
+  async adjustInventory(id: string, quantity: number, reason?: string): Promise<InventoryItem> {
+    const { data } = await api.post<InventoryItem>(`/inventory/${id}/adjust`, { quantity, reason }); return data;
   },
 
   async addMember(email: string, role: Role = 'STAFF', permissions: string[] = []): Promise<TenantMember> {
