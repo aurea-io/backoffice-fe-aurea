@@ -75,6 +75,12 @@ const PLATFORM_FEATURES: FeatureDef[] = [
 ];
 
 export function SuperadminFeaturesPage() {
+  const featureGroups = PLATFORM_FEATURES.reduce<Record<string, FeatureDef[]>>((groups, feature) => {
+    (groups[feature.category] ||= []).push(feature);
+    return groups;
+  }, {});
+  const featureNames = new Map(PLATFORM_FEATURES.map((feature) => [feature.key, feature.name]));
+
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in-50 duration-200">
       {/* Header */}
@@ -106,52 +112,65 @@ export function SuperadminFeaturesPage() {
       </div>
 
       {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {PLATFORM_FEATURES.map((feature) => (
-          <Card
-            key={feature.key}
-            variant="glass"
-            padding="md"
-            className="space-y-3 hover:border-violet-500/40 transition-all duration-200"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
-                {feature.name}
-              </h3>
-              <Badge variant="violet" size="sm">
-                {feature.badge}
-              </Badge>
-            </div>
-
-            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
-              <span>{feature.category}</span>
-              {feature.requires && <span>· Requiere: {feature.requires.join(', ')}</span>}
-            </div>
-
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {feature.description}
-            </p>
-
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
-              <p className="text-[11px] text-zinc-400 mb-1.5 font-semibold uppercase tracking-wider">
-                Detalles
-              </p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-300">
-                {feature.details}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-1">
-              {feature.verticals.map((v) => (
-                <span
-                  key={v}
-                  className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+      <div className="space-y-6">
+        {Object.entries(featureGroups).map(([category, features]) => (
+          <section key={category} className="space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+              {category}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {features.map((feature) => (
+                <Card
+                  key={feature.key}
+                  variant="glass"
+                  padding="md"
+                  className="space-y-3 hover:border-violet-500/40 transition-all duration-200"
                 >
-                  {v}
-                </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                      {feature.name}
+                    </h3>
+                    <Badge variant="violet" size="sm">
+                      {feature.badge}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                    <span>{feature.category}</span>
+                    {feature.requires && (
+                      <span>
+                        · Requiere: {feature.requires.map((key) => featureNames.get(key) ?? key).join(', ')}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {feature.description}
+                  </p>
+
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                    <p className="text-[11px] text-zinc-400 mb-1.5 font-semibold uppercase tracking-wider">
+                      Detalles
+                    </p>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-300">
+                      {feature.details}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1">
+                    {feature.verticals.map((v) => (
+                      <span
+                        key={v}
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                      >
+                        {v}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
               ))}
             </div>
-          </Card>
+          </section>
         ))}
       </div>
     </div>
