@@ -22,4 +22,14 @@ export const tenantService = {
     const { data } = await api.post<TenantMember>('/tenant/members', { email, role });
     return data;
   },
+
+  async updateMember(userId: string, input: Partial<Pick<TenantMember, 'role' | 'permissions' | 'isActive'>> & { roleKey?: string }) {
+    const { data } = await api.patch<TenantMember>(`/tenant/members/${userId}`, input);
+    return data;
+  },
+
+  async removeMember(userId: string) {
+    const { data } = await api.delete<{ success: boolean }>(`/tenant/members/${userId}`);
+    return data;
+  },
 };

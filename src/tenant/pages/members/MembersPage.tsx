@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, UserPlus, Shield, Mail, CheckCircle2, MoreVertical } from 'lucide-react';
+import { Users, UserPlus, Mail, MoreVertical, Save, UserX } from 'lucide-react';
 import { useTenantStore } from '../../../store/tenantStore';
 import { tenantService } from '../../../services/tenant.service';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
@@ -15,6 +15,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<TenantMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   const fetchMembers = async () => {
     if (!activeTenantId) return;
@@ -36,6 +37,19 @@ export default function MembersPage() {
   const handleInvite = async (email: string, role: Role) => {
     await tenantService.addMember(email, role);
     await fetchMembers();
+  };
+
+  const updateMember = async (member: TenantMember, input: Parameters<typeof tenantService.updateMember>[1]) => {
+    setSavingId(member.userId);
+    try { await tenantService.updateMember(member.userId, input); await fetchMembers(); }
+    finally { setSavingId(null); }
+  };
+
+  const removeMember = async (member: TenantMember) => {
+    if (!window.confirm(`¿Quitar a ${member.user?.name || member.user?.email} de este comercio?`)) return;
+    setSavingId(member.userId);
+    try { await tenantService.removeMember(member.userId); await fetchMembers(); }
+    finally { setSavingId(null); }
   };
 
   const roleBadges: Record<Role, { variant: 'violet' | 'emerald' | 'amber' | 'zinc'; label: string }> = {
@@ -119,9 +133,22 @@ export default function MembersPage() {
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
+                    <select
+                      className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                      value={member.role}
+                      disabled={member.role === 'OWNER' || savingId === member.userId}
+                      onChange={(event) => updateMember(member, { role: event.target.value as Role })}
+                      aria-label={`Rol de ${member.user?.name || member.user?.email}`}
+                    >
+                      <option value="MANAGER">Manager</option><option value="STAFF">Staff</option><option value="CASHIER">Cajero</option>
+                    </select>
                     <Badge variant={member.isActive ? 'emerald' : 'zinc'} size="sm" dot={member.isActive}>
                       {member.isActive ? 'Activo' : 'Inactivo'}
                     </Badge>
+                    <Button variant="ghost" size="icon" disabled={savingId === member.userId} onClick={() => updateMember(member, { isActive: !member.isActive })} title={member.isActive ? 'Suspender acceso' : 'Activar acceso'}>
+                      {member.isActive ? <UserX size={15} /> : <Save size={15} />}
+                    </Button>
+                    {member.role !== 'OWNER' && <Button variant="ghost" size="icon" disabled={savingId === member.userId} onClick={() => removeMember(member)} title="Quitar miembro"><MoreVertical size={15} /></Button>}
                   </div>
                 </div>
               );
