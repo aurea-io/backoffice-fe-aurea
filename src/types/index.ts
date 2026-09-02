@@ -128,6 +128,12 @@ export interface Plan {
   prices: Array<{ id?: string; currency: string; amountCents: number; interval: string; isActive?: boolean }>;
 }
 
+export interface Booking {
+  id: string; tenantId: string; catalogItemId: string; customerName: string; customerEmail?: string | null; customerPhone?: string | null;
+  date: string; startTime: string; durationMin: number; status: 'requested' | 'confirmed' | 'completed' | 'canceled' | 'no_show'; paymentStatus: string;
+  catalogItem?: CatalogItem;
+}
+
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {
   id: string;

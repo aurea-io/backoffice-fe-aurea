@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Role } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Booking, Role } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -20,6 +20,16 @@ export const tenantService = {
 
   async getBilling(): Promise<TenantBilling> {
     const { data } = await api.get<TenantBilling>('/tenant/billing');
+    return data;
+  },
+
+  async getBookings(from?: string, to?: string): Promise<Booking[]> {
+    const { data } = await api.get<Booking[]>('/appointments', { params: { from, to } });
+    return data;
+  },
+
+  async updateBooking(id: string, input: Partial<Pick<Booking, 'status' | 'paymentStatus'>>): Promise<Booking> {
+    const { data } = await api.patch<Booking>(`/appointments/${id}`, input);
     return data;
   },
 

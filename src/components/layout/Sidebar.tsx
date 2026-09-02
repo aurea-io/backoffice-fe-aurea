@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
   User as UserIcon,
+  CalendarDays,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -59,6 +60,7 @@ export function Sidebar() {
       icon: ShoppingBag,
       show: !isSuperadmin && hasCapability('catalog'),
     },
+    { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') },
     {
       label: 'Equipo',
       path: '/members',
