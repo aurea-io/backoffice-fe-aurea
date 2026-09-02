@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Booking, InventoryItem, RestaurantTable, RestaurantOrder, Role } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role } from '../types';
 
 export const tenantService = {
   async getContext(tenantId?: string): Promise<TenantContext> {
@@ -48,6 +48,9 @@ export const tenantService = {
   async getTables(): Promise<RestaurantTable[]> { const { data } = await api.get<RestaurantTable[]>('/restaurant/tables'); return data; },
   async updateTable(id: string, status: RestaurantTable['status']): Promise<RestaurantTable> { const { data } = await api.patch<RestaurantTable>(`/restaurant/tables/${id}`, { status }); return data; },
   async getOrders(): Promise<RestaurantOrder[]> { const { data } = await api.get<RestaurantOrder[]>('/restaurant/orders'); return data; },
+  async getCash(): Promise<CashSession | null> { const { data } = await api.get<CashSession | null>('/pos/cash'); return data; },
+  async openCash(openingCents: number): Promise<CashSession> { const { data } = await api.post<CashSession>('/pos/cash/open', { openingCents }); return data; },
+  async closeCash(closingCents: number, notes?: string): Promise<CashSession> { const { data } = await api.post<CashSession>('/pos/cash/close', { closingCents, notes }); return data; },
 
   async addMember(email: string, role: Role = 'STAFF', permissions: string[] = []): Promise<TenantMember> {
     const { data } = await api.post<TenantMember>('/tenant/members', { email, role, permissions });
