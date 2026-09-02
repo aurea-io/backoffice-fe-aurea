@@ -12,6 +12,7 @@ import {
   Package,
   Armchair,
   Banknote,
+  ChefHat,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -66,6 +67,7 @@ export function Sidebar() {
     { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') },
     { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && hasCapability('inventory') },
     { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') },
+    { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') },
     { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') },
     {
       label: 'Equipo',

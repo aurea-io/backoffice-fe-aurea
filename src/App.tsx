@@ -17,6 +17,7 @@ import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './tenant/pages/DashboardPage';
 import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPage';
 import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
+import KitchenPage from './tenant/pages/KitchenPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
 import BillingPage from './tenant/pages/BillingPage';
@@ -114,6 +115,7 @@ function App() {
           <Route element={<CapabilityRoute capability="bookings" />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
           <Route element={<CapabilityRoute capability="inventory" />}><Route path="inventory" element={<InventoryPage />} /></Route>
           <Route element={<CapabilityRoute capability="tables" />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
+          <Route element={<CapabilityRoute capability="kitchen" />}><Route path="kitchen" element={<KitchenPage />} /></Route>
           <Route element={<CapabilityRoute capability="pos_cashier" />}><Route path="pos" element={<PosPage />} /></Route>
           <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
             <Route path="members" element={<MembersPage />} />
