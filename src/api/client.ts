@@ -2,7 +2,7 @@ import axios, { type AxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://aurea-backoffice-be.onrender.com/api';
 
 export const api = axios.create({
   baseURL: BASE_URL,
