@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [city, setCity] = useState('');
   const [instagram, setInstagram] = useState('');
   const [schedule, setSchedule] = useState('');
+  const [brandingVersions, setBrandingVersions] = useState<Array<{ version: number; primaryColor: string; accentColor: string; createdAt: string }>>([]);
 
   // User profile state
   const [userName, setUserName] = useState(user?.name || '');
@@ -47,6 +48,7 @@ export default function SettingsPage() {
       setCity(s.contact?.city || '');
       setInstagram(s.contact?.instagram || '');
       setSchedule(s.schedule?.hours || '');
+      tenantService.getBrandingVersions().then(setBrandingVersions).catch(() => setBrandingVersions([]));
     }
   }, [currentTenant]);
 
@@ -81,6 +83,17 @@ export default function SettingsPage() {
       setErrorMessage(err.response?.data?.message || 'Error al guardar los ajustes.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleRollback = async (version: number) => {
+    if (!window.confirm(`¿Restaurar la versión ${version} del branding?`)) return;
+    try {
+      const updated = await tenantService.rollbackBranding(version);
+      setBrandingVersions((versions) => [updated, ...versions.filter((item) => item.version !== updated.version)].slice(0, 4));
+      setSuccessMessage(`Branding restaurado desde la versión ${version}.`);
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.message || 'No se pudo restaurar el branding.');
     }
   };
 
@@ -207,6 +220,18 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
+              {brandingVersions.length > 0 && (
+                <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4">
+                  <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Versiones publicadas</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {brandingVersions.map((version) => (
+                      <button key={version.version} type="button" onClick={() => handleRollback(version.version)} className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[11px] text-zinc-600 hover:border-violet-400 hover:text-violet-600 dark:border-zinc-700 dark:text-zinc-300">
+                        v{version.version} · restaurar
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -12,6 +12,14 @@ export const tenantService = {
     const { data } = await api.patch<TenantContext>('/tenant/settings', { settings });
     return data;
   },
+  async getBrandingVersions(): Promise<Array<{ version: number; primaryColor: string; accentColor: string; createdAt: string }>> {
+    const { data } = await api.get('/tenant/branding/versions');
+    return data;
+  },
+  async rollbackBranding(version: number) {
+    const { data } = await api.post(`/tenant/branding/rollback/${version}`);
+    return data;
+  },
 
   async getMembers(): Promise<TenantMember[]> {
     const { data } = await api.get<TenantMember[]>('/tenant/members');
