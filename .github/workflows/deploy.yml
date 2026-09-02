@@ -116,7 +116,7 @@ jobs:
           set -euo pipefail
           mkdir -p .vercel
           jq -n --arg project "$VERCEL_PROJECT_ID" --arg org "$VERCEL_ORG_ID" '{projectId: $project, orgId: $org}' > .vercel/project.json
-          response="$(npx --yes vercel@47.2.2 --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --build-env "VITE_API_URL=${VITE_API_URL}")"
+          response="$(npx --yes vercel@59.10.0 --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --build-env "VITE_API_URL=${VITE_API_URL}")"
           printf '%s\n' "$response"
           url="$(grep -Eo 'https://[[:alnum:].-]+\.vercel\.app' <<<"$response" | tail -1)"
           [[ -n "$url" ]] || { echo 'Vercel no devolvió la URL de deployment.' >&2; exit 1; }
