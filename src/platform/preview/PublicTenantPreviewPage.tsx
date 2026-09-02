@@ -34,18 +34,26 @@ export default function PublicTenantPreviewPage() {
     async function loadPublicData() {
       setIsLoading(true);
       try {
-        // Fetch all tenants to find the matching slug
-        const res = await api.get<Tenant[]>('/superadmin/tenants');
-        const found = res.data.find((t) => t.slug === slug);
-
-        if (found) {
+        if (slug) {
+          const [bootstrapRes, catRes] = await Promise.all([
+            api.get<{ publicId: string; tenant: Pick<Tenant, 'name' | 'vertical' | 'settings'> }>(`/bootstrap/${encodeURIComponent(slug)}`),
+            api.get<{ items: CatalogItem[] }>(`/public/${encodeURIComponent(slug)}/catalog`),
+          ]);
+          const publicTenant = bootstrapRes.data;
+          const found = {
+            id: publicTenant.publicId,
+            slug: publicTenant.publicId,
+            name: publicTenant.tenant.name,
+            vertical: publicTenant.tenant.vertical,
+            settings: publicTenant.tenant.settings,
+            isActive: true,
+            createdAt: '',
+            updatedAt: '',
+          } as Tenant;
           setTenant(found);
-          const catRes = await api.get<CatalogItem[]>('/catalog', {
-            headers: { 'x-tenant-id': found.id },
-          });
-          setItems(catRes.data);
-          if (catRes.data.length > 0) {
-            setSelectedService(catRes.data[0]);
+          setItems(catRes.data.items);
+          if (catRes.data.items.length > 0) {
+            setSelectedService(catRes.data.items[0]);
           }
         }
       } catch (err) {
