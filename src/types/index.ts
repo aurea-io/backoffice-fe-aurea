@@ -135,6 +135,8 @@ export interface Booking {
 }
 
 export interface InventoryItem { id: string; tenantId: string; name: string; sku?: string | null; unit: string; quantity: number; minimum: number; costCents: number; isActive: boolean; }
+export interface RestaurantTable { id: string; number: number; seats: number; status: 'available' | 'occupied' | 'reserved' | 'billing'; }
+export interface RestaurantOrder { id: string; status: 'open' | 'preparing' | 'ready' | 'served' | 'paid' | 'canceled'; customerName?: string | null; table?: RestaurantTable | null; lines: Array<{ quantity: number; unitPriceCents: number; catalogItem?: CatalogItem }> }
 
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {

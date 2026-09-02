@@ -23,6 +23,7 @@ import BillingPage from './tenant/pages/BillingPage';
 import SuperadminPlansPage from './platform/superadmin/SuperadminPlansPage';
 import AppointmentsPage from './tenant/pages/AppointmentsPage';
 import InventoryPage from './tenant/pages/InventoryPage';
+import RestaurantPage from './tenant/pages/RestaurantPage';
 import SettingsPage from './tenant/pages/SettingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
 import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
@@ -111,6 +112,7 @@ function App() {
           </Route>
           <Route element={<CapabilityRoute capability="bookings" />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
           <Route element={<CapabilityRoute capability="inventory" />}><Route path="inventory" element={<InventoryPage />} /></Route>
+          <Route element={<CapabilityRoute capability="tables" />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
           <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
             <Route path="members" element={<MembersPage />} />
           </Route>
