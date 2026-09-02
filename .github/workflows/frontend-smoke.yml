@@ -1,0 +1,39 @@
+name: Frontend smoke validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend-url:
+        description: Deployed frontend URL
+        required: true
+        type: string
+      api-url:
+        description: Optional deployed API URL including /api
+        required: false
+        type: string
+      public-id:
+        description: Optional public tenant identifier for end-to-end checks
+        required: false
+        type: string
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      FRONTEND_URL: ${{ inputs.frontend-url || github.event.deployment_status.target_url }}
+      API_URL: ${{ inputs.api-url || vars.AUREA_SMOKE_API_URL }}
+      PUBLIC_ID: ${{ inputs.public-id || vars.AUREA_SMOKE_PUBLIC_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/smoke-test.mjs
