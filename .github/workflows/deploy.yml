@@ -76,7 +76,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             AUREA_COMMIT_ID=${{ steps.revision.outputs.sha }}
-            VITE_API_URL=${{ vars.VITE_API_URL }}
+            # Keep production auth working even if the repository variable is absent.
+            VITE_API_URL=${{ vars.VITE_API_URL || 'https://aurea-backoffice-be.onrender.com/api' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -100,7 +101,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://aurea-backoffice-be.onrender.com/api' }}
         run: |
           if [[ -n "$VERCEL_TOKEN" && -n "$VERCEL_ORG_ID" && -n "$VERCEL_PROJECT_ID" && -n "$VITE_API_URL" ]]; then
             echo 'configured=true' >> "$GITHUB_OUTPUT"
@@ -116,7 +117,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://aurea-backoffice-be.onrender.com/api' }}
         run: |
           set -euo pipefail
           mkdir -p .vercel
