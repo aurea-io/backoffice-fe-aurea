@@ -48,6 +48,12 @@ export function Sidebar() {
       show: isSuperadmin,
     },
     {
+      label: 'Planes',
+      path: '/superadmin/plans',
+      icon: Store,
+      show: isSuperadmin,
+    },
+    {
       label: 'Catálogo',
       path: '/catalog',
       icon: ShoppingBag,

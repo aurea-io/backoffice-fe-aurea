@@ -20,6 +20,7 @@ import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
 import MembersPage from './tenant/pages/members/MembersPage';
 import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
 import BillingPage from './tenant/pages/BillingPage';
+import SuperadminPlansPage from './platform/superadmin/SuperadminPlansPage';
 import SettingsPage from './tenant/pages/SettingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
 import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
@@ -120,6 +121,7 @@ function App() {
             <Route path="tenants" element={<SuperadminTenantsPage />} />
             <Route path="tenants/:id" element={<TenantDetailPage />} />
             <Route path="superadmin/features" element={<SuperadminFeaturesPage />} />
+            <Route path="superadmin/plans" element={<SuperadminPlansPage />} />
             <Route path="preview/:tenantId" element={<PublicTenantPreviewPage />} />
             <Route path="superadmin/tenants" element={<Navigate to="/tenants" replace />} />
           </Route>

@@ -122,6 +122,12 @@ export interface TenantBilling {
   addons: Array<{ addon: { key: string; name: string; priceCents: number; currency: string }; quantity: number }>;
 }
 
+export interface Plan {
+  id: string; key: string; name: string; description?: string | null; isActive: boolean;
+  includedFeatures: string[];
+  prices: Array<{ id?: string; currency: string; amountCents: number; interval: string; isActive?: boolean }>;
+}
+
 // ── Catalog Models ─────────────────────────────────────────────────────────
 export interface CatalogItem {
   id: string;
