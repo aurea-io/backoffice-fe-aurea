@@ -1,8 +1,8 @@
 name: Build and deploy frontend
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
@@ -37,8 +40,16 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      revision: ${{ steps.revision.outputs.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+          persist-credentials: false
+      - name: Capture deployed revision
+        id: revision
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
       - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
@@ -59,7 +70,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            AUREA_COMMIT_ID=${{ github.sha }}
+            AUREA_COMMIT_ID=${{ steps.revision.outputs.sha }}
             VITE_API_URL=${{ vars.VITE_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -72,40 +83,76 @@ jobs:
     outputs:
       configured: ${{ steps.config.outputs.configured }}
       reason: ${{ steps.config.outputs.reason }}
+      url: ${{ steps.deploy.outputs.url }}
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+          persist-credentials: false
       - name: Check Vercel configuration
         id: config
         env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_API_URL: ${{ vars.VITE_API_URL }}
         run: |
-          if [[ -n "$VERCEL_DEPLOY_HOOK_URL" && -n "$VITE_API_URL" ]]; then
+          if [[ -n "$VERCEL_TOKEN" && -n "$VERCEL_ORG_ID" && -n "$VERCEL_PROJECT_ID" && -n "$VITE_API_URL" ]]; then
             echo 'configured=true' >> "$GITHUB_OUTPUT"
           else
             echo 'configured=false' >> "$GITHUB_OUTPUT"
-            echo 'reason=Faltan VERCEL_DEPLOY_HOOK_URL o VITE_API_URL en la configuración de Actions.' >> "$GITHUB_OUTPUT"
-            echo 'Deploy frontend omitido: falta la configuración del proyecto Vercel o VITE_API_URL.'
+            echo 'reason=Faltan VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID o VITE_API_URL en la configuración de Actions.' >> "$GITHUB_OUTPUT"
+            echo 'Deploy frontend omitido: falta la configuración de Vercel o VITE_API_URL.'
           fi
       - name: Deploy to Vercel
         if: steps.config.outputs.configured == 'true'
+        id: deploy
         env:
-          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          # Deploy Hook creates the production deployment through Vercel's Git integration.
-          curl --fail --silent --show-error --retry 3 --retry-delay 2 -X POST "$VERCEL_DEPLOY_HOOK_URL"
+          set -euo pipefail
+          mkdir -p .vercel
+          jq -n --arg project "$VERCEL_PROJECT_ID" --arg org "$VERCEL_ORG_ID" '{projectId: $project, orgId: $org}' > .vercel/project.json
+          response="$(npx --yes vercel@41.7.3 deploy --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" --yes --json --build-env "VITE_API_URL=${VITE_API_URL}")"
+          url="$(jq -r '.url // empty' <<<"$response")"
+          [[ -n "$url" ]] || { echo 'Vercel no devolvió la URL de deployment.' >&2; exit 1; }
+          echo "url=https://${url#https://}" >> "$GITHUB_OUTPUT"
+
+  smoke-test:
+    name: Smoke test frontend
+    environment: production
+    if: ${{ always() && needs.deploy.result == 'success' && needs.deploy.outputs.configured == 'true' }}
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      FRONTEND_URL: ${{ needs.deploy.outputs.url }}
+    steps:
+      - name: Wait for frontend response
+        run: |
+          set -euo pipefail
+          for attempt in {1..16}; do
+            if curl --fail --silent --show-error --max-time 15 "${FRONTEND_URL}/" >/dev/null; then exit 0; fi
+            sleep 15
+          done
+          echo "Frontend smoke test failed at ${FRONTEND_URL}/" >&2
+          exit 1
 
   notify-image:
     name: Notify image
     if: ${{ always() && needs.verify.result != 'skipped' }}
     needs: [verify, publish]
-    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@85ebac96fbed95ec84ddd639732c787166636301
+    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@f23cac745fb26144d4503c6666d0e113eac4a5d1
     with:
       event-type: image
       environment: production
       image: ghcr.io/aurea-io/backoffice-fe-aurea
       version: latest
-      source-commit: ${{ github.sha }}
-      commit-message: ${{ github.event.head_commit.message || 'workflow dispatch' }}
+      source-commit: ${{ needs.publish.outputs.revision }}
+      commit-message: ${{ github.event.release.name || github.event.release.tag_name || github.event.head_commit.message || 'workflow dispatch' }}
       status: ${{ needs.publish.result == 'success' && needs.verify.result == 'success' && 'success' || 'failure' }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -117,16 +164,16 @@ jobs:
   notify-deploy:
     name: Notify deploy
     if: ${{ always() && needs.deploy.result != 'skipped' }}
-    needs: [publish, deploy]
-    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@85ebac96fbed95ec84ddd639732c787166636301
+    needs: [publish, deploy, smoke-test]
+    uses: aurea-io/aurea-ci/.github/workflows/notify.yml@f23cac745fb26144d4503c6666d0e113eac4a5d1
     with:
       event-type: deploy
       environment: production
-      version: latest
-      source-commit: ${{ github.sha }}
-      commit-message: ${{ github.event.head_commit.message || 'workflow dispatch' }}
-      status: ${{ needs.deploy.outputs.configured == 'true' && needs.deploy.result == 'success' && 'success' || needs.deploy.outputs.configured == 'false' && 'skipped' || 'failure' }}
-      reason: ${{ needs.deploy.outputs.reason }}
+      version: sha-${{ needs.publish.outputs.revision }}
+      source-commit: ${{ needs.publish.outputs.revision }}
+      commit-message: ${{ github.event.release.name || github.event.release.tag_name || github.event.head_commit.message || 'workflow dispatch' }}
+      status: ${{ needs.deploy.outputs.configured == 'false' && 'skipped' || needs.smoke-test.result == 'success' && 'success' || 'failure' }}
+      reason: ${{ needs.deploy.outputs.configured == 'false' && needs.deploy.outputs.reason || needs.deploy.result == 'failure' && 'El deploy a Vercel falló.' || needs.smoke-test.result == 'failure' && 'El smoke test del frontend falló.' || '' }}
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
