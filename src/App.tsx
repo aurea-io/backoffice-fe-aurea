@@ -111,16 +111,16 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
 
-          <Route element={<CapabilityRoute capability="catalog" />}>
+          <Route element={<CapabilityRoute capability="catalog" permission={['catalog:read', 'catalog.view', 'catalog:write']} />}>
             <Route path="catalog" element={<CatalogPage />} />
           </Route>
-          <Route element={<CapabilityRoute capability="bookings" />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="inventory" />}><Route path="inventory" element={<InventoryPage />} /></Route>
-          <Route element={<CapabilityRoute capability="tables" />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
-          <Route element={<CapabilityRoute capability="kitchen" />}><Route path="kitchen" element={<KitchenPage />} /></Route>
-          <Route element={<CapabilityRoute capability="clients" />}><Route path="clients" element={<ClientsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="marketing" />}><Route path="coupons" element={<CouponsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="pos_cashier" />}><Route path="pos" element={<PosPage />} /></Route>
+          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="inventory" permission={['inventory:read', 'inventory.manage']} />}><Route path="inventory" element={<InventoryPage />} /></Route>
+          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
+          <Route element={<CapabilityRoute capability="kitchen" permission={['kitchen.view', 'kitchen:read']} />}><Route path="kitchen" element={<KitchenPage />} /></Route>
+          <Route element={<CapabilityRoute capability="clients" permission={['clients:read', 'clients.view']} />}><Route path="clients" element={<ClientsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="coupons" element={<CouponsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="pos_cashier" permission={['pos.cashier', 'pos:read']} />}><Route path="pos" element={<PosPage />} /></Route>
           <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
             <Route path="members" element={<MembersPage />} />
           </Route>

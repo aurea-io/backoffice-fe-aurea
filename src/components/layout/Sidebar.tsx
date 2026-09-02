@@ -27,7 +27,7 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { user, clearAuth, isSuperadmin } = useAuthStore();
   const { currentTenant, clearTenant } = useTenantStore();
-  const { hasCapability } = useCapability();
+  const { hasCapability, hasPermission } = useCapability();
 
   const handleLogout = async () => {
     try {
@@ -64,15 +64,15 @@ export function Sidebar() {
       label: 'Catálogo',
       path: '/catalog',
       icon: ShoppingBag,
-      show: !isSuperadmin && hasCapability('catalog'),
+      show: !isSuperadmin && hasCapability('catalog') && hasPermission('catalog:read', 'catalog.view', 'catalog:write'),
     },
-    { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') },
-    { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && hasCapability('inventory') },
-    { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') },
-    { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') },
-    { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && hasCapability('clients') },
-    { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && hasCapability('marketing') },
-    { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') },
+    { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') && hasPermission('appointments:read', 'bookings.view') },
+    { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && hasCapability('inventory') && hasPermission('inventory:read', 'inventory.manage') },
+    { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') && hasPermission('tables.view', 'tables:read', 'orders:create') },
+    { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') && hasPermission('kitchen.view', 'kitchen:read') },
+    { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && hasCapability('clients') && hasPermission('clients:read', 'clients.view') },
+    { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
+    { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') && hasPermission('pos.cashier', 'pos:read') },
     {
       label: 'Equipo',
       path: '/members',

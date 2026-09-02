@@ -28,5 +28,13 @@ export function useCapability() {
     [hasCapability],
   );
 
-  return { hasCapability, hasAnyCapability, hasAllCapabilities };
+  const hasPermission = useCallback(
+    (...permissions: string[]) => {
+      if (isSuperadmin || currentTenant?.role === 'SUPERADMIN' || currentTenant?.role === 'OWNER' || currentTenant?.role === 'MANAGER') return true;
+      return permissions.some((permission) => currentTenant?.permissions.includes(permission) || currentTenant?.permissions.includes('all'));
+    },
+    [currentTenant, isSuperadmin],
+  );
+
+  return { hasCapability, hasAnyCapability, hasAllCapabilities, hasPermission };
 }
