@@ -1,4 +1,4 @@
-name: Build and deploy frontend
+name: Build and deploy frontend # Release deployment contract
 
 on:
   release:
@@ -96,7 +96,6 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VITE_API_URL: ${{ vars.VITE_API_URL }}
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
         run: |
           if [[ -n "$VERCEL_TOKEN" && -n "$VERCEL_ORG_ID" && -n "$VERCEL_PROJECT_ID" && -n "$VITE_API_URL" ]]; then
             echo 'configured=true' >> "$GITHUB_OUTPUT"
@@ -112,6 +111,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
         run: |
           set -euo pipefail
           mkdir -p .vercel
