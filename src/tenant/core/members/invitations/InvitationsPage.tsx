@@ -14,16 +14,16 @@ import {
   Mail,
   Shield,
 } from 'lucide-react';
-import { invitationsService } from '../../../services/invitations.service';
-import { useAuthStore } from '../../../store/authStore';
-import { useTenantStore } from '../../../store/tenantStore';
-import { Card } from '../../../components/ui/Card';
-import { Button } from '../../../components/ui/Button';
-import { Input } from '../../../components/ui/Input';
-import { Badge } from '../../../components/ui/Badge';
-import { LoadingSpinner } from '../../../components/common/LoadingSpinner';
-import { EmptyState } from '../../../components/common/EmptyState';
-import type { Invitation, Role } from '../../../types';
+import { invitationsService } from '../../../../services/invitations.service';
+import { useAuthStore } from '../../../../store/authStore';
+import { useTenantStore } from '../../../../store/tenantStore';
+import { Card } from '../../../../components/ui/Card';
+import { Button } from '../../../../components/ui/Button';
+import { Input } from '../../../../components/ui/Input';
+import { Badge } from '../../../../components/ui/Badge';
+import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
+import { EmptyState } from '../../../../components/common/EmptyState';
+import type { Invitation, Role } from '../../../../types';
 
 export default function InvitationsPage() {
   const { user } = useAuthStore();
@@ -211,7 +211,7 @@ export default function InvitationsPage() {
               type="email"
               placeholder="nuevo.socio@negocio.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               leftIcon={<Mail size={16} />}
               required
             />

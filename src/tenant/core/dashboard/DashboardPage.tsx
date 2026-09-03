@@ -12,16 +12,16 @@ import {
   Globe,
   Award,
 } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { superadminService } from '../../services/superadmin.service';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import type { Tenant } from '../../types';
-import { tenantService } from '../../services/tenant.service';
-import type { TenantAnalytics } from '../../types';
-import { formatCurrencyFromCents } from '../../utils/currency';
+import { useAuthStore } from '../../../store/authStore';
+import { superadminService } from '../../../services/superadmin.service';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/Card';
+import { Badge } from '../../../components/ui/Badge';
+import { Button } from '../../../components/ui/Button';
+import { LoadingSpinner } from '../../../components/common/LoadingSpinner';
+import type { Tenant } from '../../../types';
+import { tenantService } from '../../../services/tenant.service';
+import type { TenantAnalytics } from '../../../types';
+import { formatCurrencyFromCents } from '../../../utils/currency';
 
 export function DashboardPage() {
   const { user, isSuperadmin, tenants: userTenants } = useAuthStore();

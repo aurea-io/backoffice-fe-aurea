@@ -66,7 +66,7 @@ export function InviteMemberModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Invitar Miembro al Equipo</DialogTitle>
@@ -87,7 +87,7 @@ export function InviteMemberModal({
             type="email"
             placeholder="colaborador@negocio.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             leftIcon={<Mail size={16} />}
             required
           />

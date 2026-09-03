@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Booking, InventoryItem, RestaurantTable, RestaurantOrder, CashSession, Role, Client, TableQr, PaymentIntent, Coupon, TableBooking, LoyaltyAccount } from '../types';
+import type { TenantContext, TenantSettings, TenantMember, TenantBilling, TenantAnalytics, Role } from '../types';
 
 export interface BrandingVersion {
   version: number;
@@ -25,10 +25,12 @@ export const tenantService = {
     const { data } = await api.patch<TenantContext>('/tenant/settings', { settings });
     return data;
   },
+
   async getBrandingVersions(): Promise<BrandingVersion[]> {
     const { data } = await api.get<BrandingVersion[]>('/tenant/branding/versions');
     return data;
   },
+
   async rollbackBranding(version: number): Promise<BrandingVersion> {
     const { data } = await api.post<BrandingVersion>(`/tenant/branding/rollback/${version}`);
     return data;
@@ -38,56 +40,6 @@ export const tenantService = {
     const { data } = await api.get<TenantMember[]>('/tenant/members');
     return data;
   },
-
-  async getBilling(): Promise<TenantBilling> {
-    const { data } = await api.get<TenantBilling>('/tenant/billing');
-    return data;
-  },
-  async createPaymentIntent(input: { provider: 'mercadopago' | 'stripe' | 'manual'; amountCents: number; currency: string; referenceType: string; referenceId: string; returnUrl?: string }): Promise<PaymentIntent> { const { data } = await api.post<PaymentIntent>('/payments/intents', input); return data; },
-
-  async getBookings(from?: string, to?: string): Promise<Booking[]> {
-    const { data } = await api.get<Booking[]>('/appointments', { params: { from, to } });
-    return data;
-  },
-
-  async updateBooking(id: string, input: Partial<Pick<Booking, 'status' | 'paymentStatus'>>): Promise<Booking> {
-    const { data } = await api.patch<Booking>(`/appointments/${id}`, input);
-    return data;
-  },
-
-  async getInventory(): Promise<InventoryItem[]> {
-    const { data } = await api.get<InventoryItem[]>('/inventory'); return data;
-  },
-
-  async createInventory(input: Pick<InventoryItem, 'name' | 'quantity'> & Partial<Pick<InventoryItem, 'unit' | 'minimum' | 'costCents'>>): Promise<InventoryItem> {
-    const { data } = await api.post<InventoryItem>('/inventory', input); return data;
-  },
-
-  async adjustInventory(id: string, quantity: number, reason?: string): Promise<InventoryItem> {
-    const { data } = await api.post<InventoryItem>(`/inventory/${id}/adjust`, { quantity, reason }); return data;
-  },
-
-  async getTables(): Promise<RestaurantTable[]> { const { data } = await api.get<RestaurantTable[]>('/restaurant/tables'); return data; },
-  async getTableBookings(): Promise<TableBooking[]> { const { data } = await api.get<TableBooking[]>('/restaurant/bookings'); return data; },
-  async createTableBooking(input: Omit<TableBooking, 'id' | 'status' | 'table'> & { tableId?: string }): Promise<TableBooking> { const { data } = await api.post<TableBooking>('/restaurant/bookings', input); return data; },
-  async updateTableBooking(id: string, status: TableBooking['status']): Promise<TableBooking> { const { data } = await api.patch<TableBooking>(`/restaurant/bookings/${id}`, { status }); return data; },
-  async updateTable(id: string, status: RestaurantTable['status']): Promise<RestaurantTable> { const { data } = await api.patch<RestaurantTable>(`/restaurant/tables/${id}`, { status }); return data; },
-  async getTableQr(id: string): Promise<TableQr> { const { data } = await api.get<TableQr>(`/restaurant/tables/${id}/qr`); return data; },
-  async getOrders(): Promise<RestaurantOrder[]> { const { data } = await api.get<RestaurantOrder[]>('/restaurant/orders'); return data; },
-  async getKitchenOrders(): Promise<RestaurantOrder[]> { const { data } = await api.get<RestaurantOrder[]>('/restaurant/kitchen'); return data; },
-  async updateKitchenOrder(id: string, status: RestaurantOrder['status']): Promise<RestaurantOrder> { const { data } = await api.patch<RestaurantOrder>(`/restaurant/kitchen/orders/${id}`, { status }); return data; },
-  async getCash(): Promise<CashSession | null> { const { data } = await api.get<CashSession | null>('/pos/cash'); return data; },
-  async openCash(openingCents: number): Promise<CashSession> { const { data } = await api.post<CashSession>('/pos/cash/open', { openingCents }); return data; },
-  async closeCash(closingCents: number, notes?: string): Promise<CashSession> { const { data } = await api.post<CashSession>('/pos/cash/close', { closingCents, notes }); return data; },
-  async getAnalytics(): Promise<TenantAnalytics> { const { data } = await api.get<TenantAnalytics>('/tenant/analytics'); return data; },
-  async getClients(search?: string): Promise<Client[]> { const { data } = await api.get<Client[]>('/clients', { params: search ? { search } : undefined }); return data; },
-  async createClient(input: Pick<Client, 'name' | 'email' | 'phone'>): Promise<Client> { const { data } = await api.post<Client>('/clients', input); return data; },
-  async addClientNote(id: string, body: string) { const { data } = await api.post(`/clients/${id}/notes`, { body }); return data; },
-  async getCoupons(): Promise<Coupon[]> { const { data } = await api.get<Coupon[]>('/coupons'); return data; },
-  async createCoupon(input: { code: string; type: Coupon['type']; value: number; maxUses?: number; expiresAt?: string }): Promise<Coupon> { const { data } = await api.post<Coupon>('/coupons', input); return data; },
-  async deactivateCoupon(id: string): Promise<Coupon> { const { data } = await api.delete<Coupon>(`/coupons/${id}`); return data; },
-  async getLoyalty(): Promise<LoyaltyAccount[]> { const { data } = await api.get<LoyaltyAccount[]>('/loyalty'); return data; },
-  async operateLoyalty(customerId: string, points: number, operation: 'earn' | 'redeem'): Promise<LoyaltyAccount> { const { data } = await api.post<LoyaltyAccount>('/loyalty/operations', { customerId, points, operation }); return data; },
 
   async addMember(email: string, role: Role = 'STAFF', permissions: string[] = []): Promise<TenantMember> {
     const { data } = await api.post<TenantMember>('/tenant/members', { email, role, permissions });
@@ -104,8 +56,31 @@ export const tenantService = {
     return data;
   },
 
+  async getBilling(): Promise<TenantBilling> {
+    const { data } = await api.get<TenantBilling>('/tenant/billing');
+    return data;
+  },
+
+  async getAnalytics(): Promise<TenantAnalytics> {
+    const { data } = await api.get<TenantAnalytics>('/tenant/analytics');
+    return data;
+  },
+
   async getNavigation() {
-    const { data } = await api.get<{ sections: Array<{ id: string; name: string; description?: string; pages: Array<{ id: string; name: string; path: string; feature?: string; modules: Array<{ key: string; name: string; description?: string }> }> }> }>('/tenant/navigation');
+    const { data } = await api.get<{
+      sections: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        pages: Array<{
+          id: string;
+          name: string;
+          path: string;
+          feature?: string;
+          modules: Array<{ key: string; name: string; description?: string }>;
+        }>;
+      }>;
+    }>('/tenant/navigation');
     return data;
   },
 };
