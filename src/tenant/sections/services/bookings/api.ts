@@ -11,4 +11,18 @@ export const bookingsApi = {
     const { data } = await api.patch<Booking>(`/bookings/${id}`, { status });
     return data;
   },
+
+  async createBooking(dto: {
+    catalogItemId: string;
+    customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    date: string;
+    startTime: string;
+    durationMin?: number;
+    notes?: string;
+  }): Promise<Booking> {
+    const { data } = await api.post<Booking>('/bookings', dto);
+    return data;
+  },
 };

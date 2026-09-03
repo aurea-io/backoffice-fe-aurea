@@ -12,6 +12,7 @@ import {
   Sparkles,
   ShoppingBag,
   Store,
+  MessageCircle,
 } from 'lucide-react';
 import { api } from '../../api/client';
 import { Card } from '../../components/ui/Card';
@@ -33,6 +34,7 @@ export default function PublicTenantPreviewPage() {
   const [selectedTime, setSelectedTime] = useState('16:30');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [publicCapabilities, setPublicCapabilities] = useState<string[]>([]);
@@ -91,10 +93,11 @@ export default function PublicTenantPreviewPage() {
     setIsBooking(true);
     setBookingError(null);
     try {
-      await api.post(`/public/${encodeURIComponent(slug)}/appointments`, {
+      await api.post(`/public/${encodeURIComponent(slug)}/bookings`, {
         catalogItemId: selectedService.id,
         customerName: customerName.trim(),
         customerEmail: customerEmail.trim() || undefined,
+        customerPhone: (customerPhone || '').trim() || undefined,
         date: selectedDate,
         startTime: selectedTime,
         durationMin: selectedService.durationMin || undefined,
@@ -112,7 +115,7 @@ export default function PublicTenantPreviewPage() {
       {/* Top Floating Back Bar */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#12131e]/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800/80 px-4 py-2.5 flex items-center justify-between">
         <Link
-          to="/dashboard"
+          to="/core/dashboard"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft size={14} />
@@ -288,6 +291,7 @@ export default function PublicTenantPreviewPage() {
 
                     <div className="space-y-2">
                       <Input label="Tu nombre" value={customerName} onChange={(event) => setCustomerName(event.target.value)} required />
+                      <Input label="Teléfono / WhatsApp" type="tel" placeholder="Ej. +54 9 11 5555-1234" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} />
                       <Input label="Email (opcional)" type="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} />
                       {bookingError && <p className="text-xs font-medium text-rose-600">{bookingError}</p>}
                     </div>
@@ -313,6 +317,19 @@ export default function PublicTenantPreviewPage() {
           </div>
         )}
       </main>
+
+      {/* Floating WhatsApp Contact Button */}
+      <a
+        href={`https://wa.me/${(((tenant?.settings as any)?.contact?.phone || '5491155551234') as string).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+          `¡Hola! Quisiera consultar sobre turnos en ${tenant?.name || 'su local'}.`
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-emerald-600 focus:outline-none focus:ring-4 focus:ring-emerald-400/30"
+        title="Contactar por WhatsApp"
+      >
+        <MessageCircle size={28} />
+      </a>
     </div>
   );
 }
