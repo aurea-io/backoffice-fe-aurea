@@ -176,12 +176,13 @@ export function CatalogItemModal({
 
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Precio ($)"
+              label="Precio (ARS)"
               type="number"
               step="0.01"
               placeholder="0.00"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
+              helperText="Ingresá el importe en pesos; se guarda internamente en centavos."
               required
             />
 

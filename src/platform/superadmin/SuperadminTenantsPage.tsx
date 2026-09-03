@@ -377,7 +377,7 @@ export function SuperadminTenantsPage() {
                         <span className="font-mono">/{tenant.slug}</span>
                         <span>·</span>
                         <a
-                          href={`http://localhost:5173/preview/${tenant.slug}`}
+                          href={`/public/${tenant.slug}`}
                           target="_blank"
                           rel="noreferrer"
                           className="hover:text-violet-500 inline-flex items-center gap-1 transition-colors"

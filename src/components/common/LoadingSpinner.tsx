@@ -36,13 +36,17 @@ export function LoadingSpinner({
   );
 }
 
-export function FullPageLoader({ message = 'Cargando Aurea Backoffice...' }: { message?: string }) {
+export function FullPageLoader({
+  message = 'Cargando Aurea Backoffice...',
+  action,
+}: { message?: string; action?: React.ReactNode }) {
   return (
     <div className="fixed inset-0 bg-zinc-50 dark:bg-[#0c0d12] flex flex-col items-center justify-center z-50">
       <div className="mb-6">
         <Logo size="lg" isLink={false} />
       </div>
       <LoadingSpinner size="md" label={message} />
+      {action}
     </div>
   );
 }
