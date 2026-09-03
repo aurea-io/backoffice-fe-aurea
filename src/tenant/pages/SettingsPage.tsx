@@ -85,7 +85,12 @@ export default function SettingsPage() {
       };
 
       const updated = await tenantService.updateSettings(updatedSettings);
-      setCurrentTenant(updated);
+      if (currentTenant) {
+        setCurrentTenant({
+          ...currentTenant,
+          settings: updated.settings || updatedSettings,
+        });
+      }
       setSuccessMessage('¡Configuración del negocio guardada exitosamente!');
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || 'Error al guardar los ajustes.');
@@ -104,7 +109,12 @@ export default function SettingsPage() {
         tenantService.getContext(activeTenantId || undefined),
         tenantService.getBrandingVersions(),
       ]);
-      setCurrentTenant(updatedTenant);
+      if (currentTenant) {
+        setCurrentTenant({
+          ...currentTenant,
+          settings: (updatedTenant.settings || currentTenant.settings) as TenantSettings,
+        });
+      }
       setBrandingVersions(versions);
       const restored = (updatedTenant.settings || {}) as TenantSettings;
       setPrimaryColor(restored.branding?.primaryColor || '#7c3aed');
