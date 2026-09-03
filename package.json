@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:arch": "python3 ../aurea-ci/scripts/validate-architecture.py",
+    "test:arch:list": "python3 ../aurea-ci/scripts/validate-services-cohesion.py --dir src --list"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.6",
