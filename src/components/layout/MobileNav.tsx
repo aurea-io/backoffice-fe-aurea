@@ -3,18 +3,21 @@ import { LayoutDashboard, Store, ShoppingBag, Users, Settings } from 'lucide-rea
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
 import { useCapability } from '../../hooks/useCapability';
+import { useDomainPermissions } from '../../hooks/useDomainPermissions';
 
 export function MobileNav() {
   const { isSuperadmin } = useAuthStore();
   const { hasCapability } = useCapability();
+  const catalog = useDomainPermissions('catalog');
 
   const navItems = [
     { label: 'Resumen', path: '/dashboard', icon: LayoutDashboard, show: true },
     { label: 'Tenants', path: '/tenants', icon: Store, show: isSuperadmin },
-    { label: 'Catálogo', path: '/catalog', icon: ShoppingBag, show: !isSuperadmin && hasCapability('catalog') },
+    { label: 'Catálogo', path: '/catalog', icon: ShoppingBag, show: !isSuperadmin && catalog.canRead },
     { label: 'Equipo', path: '/members', icon: Users, show: !isSuperadmin && hasCapability('tenant:employees:read') },
     { label: 'Ajustes', path: '/settings', icon: Settings, show: !isSuperadmin },
   ];
+
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-[#0e0f17]/90 backdrop-blur-lg border-t border-zinc-200/80 dark:border-zinc-800/80 pb-safe z-40">
