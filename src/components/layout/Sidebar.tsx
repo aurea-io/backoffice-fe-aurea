@@ -1,22 +1,9 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Store,
-  ShoppingBag,
-  Users,
-  MailPlus,
-  Settings,
+  ChevronDown,
   LogOut,
   User as UserIcon,
-  CalendarDays,
-  Package,
-  Armchair,
-  Banknote,
-  ChefHat,
-  Contact,
-  BadgePercent,
-  CalendarClock,
-  Gift,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../../store/authStore';
@@ -24,12 +11,32 @@ import { useTenantStore } from '../../store/tenantStore';
 import { Logo } from '../ui/Logo';
 import { authService } from '../../services/auth.service';
 import { useCapability } from '../../hooks/useCapability';
+import {
+  CANONICAL_TAXONOMY,
+  SUPERADMIN_TAXONOMY,
+  type SectionItem,
+  type PageItem,
+} from '../../config/taxonomy.config';
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, clearAuth, isSuperadmin } = useAuthStore();
   const { currentTenant, clearTenant } = useTenantStore();
   const { hasCapability, hasPermission } = useCapability();
+
+  // Estados de expansión de secciones y páginas
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    core: true,
+    services: true,
+    commerce: true,
+    gastronomy: true,
+    crm: true,
+    marketing: true,
+    platform: true,
+  });
+
+  const [expandedPages, setExpandedPages] = useState<Record<string, boolean>>({});
 
   const handleLogout = async () => {
     try {
@@ -43,97 +50,168 @@ export function Sidebar() {
     }
   };
 
-  const navItems = [
-    {
-      label: 'Resumen',
-      path: '/dashboard',
-      icon: LayoutDashboard,
-      show: true,
-    },
-    {
-      label: 'Tenants & Comercios',
-      path: '/tenants',
-      icon: Store,
-      show: isSuperadmin,
-    },
-    {
-      label: 'Planes',
-      path: '/superadmin/plans',
-      icon: Store,
-      show: isSuperadmin,
-    },
-    {
-      label: 'Catálogo',
-      path: '/catalog',
-      icon: ShoppingBag,
-      show: !isSuperadmin && hasCapability('catalog') && hasPermission('catalog:read', 'catalog.view', 'catalog:write'),
-    },
-    { label: 'Agenda', path: '/appointments', icon: CalendarDays, show: !isSuperadmin && hasCapability('bookings') && hasPermission('appointments:read', 'bookings.view') },
-    { label: 'Reservas de mesa', path: '/table-bookings', icon: CalendarClock, show: !isSuperadmin && hasCapability('bookings') && hasPermission('bookings.view', 'tables.view') },
-    { label: 'Inventario', path: '/inventory', icon: Package, show: !isSuperadmin && hasCapability('inventory') && hasPermission('inventory:read', 'inventory.manage') },
-    { label: 'Salón', path: '/restaurant', icon: Armchair, show: !isSuperadmin && hasCapability('tables') && hasPermission('tables.view', 'tables:read', 'orders:create') },
-    { label: 'Cocina', path: '/kitchen', icon: ChefHat, show: !isSuperadmin && hasCapability('kitchen') && hasPermission('kitchen.view', 'kitchen:read') },
-    { label: 'Clientes', path: '/clients', icon: Contact, show: !isSuperadmin && hasCapability('clients') && hasPermission('clients:read', 'clients.view') },
-    { label: 'Cupones', path: '/coupons', icon: BadgePercent, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
-    { label: 'Fidelización', path: '/loyalty', icon: Gift, show: !isSuperadmin && hasCapability('marketing') && hasPermission('marketing:read') },
-    { label: 'Caja', path: '/pos', icon: Banknote, show: !isSuperadmin && hasCapability('pos_cashier') && hasPermission('pos.cashier', 'pos:read') },
-    {
-      label: 'Equipo',
-      path: '/members',
-      icon: Users,
-      show: !isSuperadmin && hasCapability('tenant:employees:read'),
-    },
-    {
-      label: 'Invitaciones',
-      path: '/invitations',
-      icon: MailPlus,
-      show: !isSuperadmin && hasCapability('tenant:employees:manage'),
-    },
-    {
-      label: 'Configuración',
-      path: '/settings',
-      icon: Settings,
-      show: !isSuperadmin && Boolean(currentTenant),
-    },
-  ];
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
+
+  const togglePage = (pageId: string) => {
+    setExpandedPages((prev) => ({
+      ...prev,
+      [pageId]: !prev[pageId],
+    }));
+  };
+
+  // Filtrado de páginas según capacidades, permisos y rol
+  const isPageVisible = (page: PageItem): boolean => {
+    if (page.superadminOnly) {
+      return Boolean(isSuperadmin);
+    }
+    if (isSuperadmin) {
+      return false; // El superadmin opera en su sección de plataforma
+    }
+    if (!currentTenant) {
+      return false;
+    }
+    if (!page.capability) {
+      return true; // Si no requiere capability específica (ej: dashboard, settings)
+    }
+    const capOk = hasCapability(page.capability);
+    if (!capOk) return false;
+
+    if (page.permissions && page.permissions.length > 0) {
+      return hasPermission(...page.permissions);
+    }
+    return true;
+  };
+
+  // Secciones visibles calculadas
+  const visibleSections = useMemo(() => {
+    if (isSuperadmin) {
+      const visiblePages = SUPERADMIN_TAXONOMY.pages.filter(isPageVisible);
+      return visiblePages.length > 0
+        ? [{ ...SUPERADMIN_TAXONOMY, pages: visiblePages }]
+        : [];
+    }
+
+    return CANONICAL_TAXONOMY.map((section) => ({
+      ...section,
+      pages: section.pages.filter(isPageVisible),
+    })).filter((section) => section.pages.length > 0);
+  }, [isSuperadmin, currentTenant, hasCapability, hasPermission]);
 
   return (
-    <aside className="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-[#0e0f17] border-r border-zinc-200/80 dark:border-zinc-800/80 z-40 justify-between">
-      <div className="flex flex-col min-h-0">
+    <aside className="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-[#0e0f17] border-r border-zinc-200/80 dark:border-zinc-800/80 z-40 justify-between select-none">
+      <div className="flex flex-col min-h-0 flex-1">
         {/* Brand Header */}
         <div className="p-5 pb-3">
           <Logo size="md" />
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 overflow-y-auto space-y-5">
-          <div>
-            <p className="px-3 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1.5">
-              Principal
-            </p>
-            <ul className="space-y-0.5">
-              {navItems
-                .filter((item) => item.show)
-                .map((item) => (
-                  <li key={item.path}>
-                    <NavLink
-                      to={item.path}
-                      className={({ isActive }) =>
-                        clsx(
-                          'flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150',
-                          isActive
-                            ? 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 font-semibold shadow-2xs border border-violet-200/60 dark:border-violet-800/30'
-                            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100',
-                        )
-                      }
-                    >
-                      <item.icon size={16} className="shrink-0" />
-                      <span>{item.label}</span>
-                    </NavLink>
-                  </li>
-                ))}
-            </ul>
-          </div>
+        {/* Navigation - Árbol Jerárquico: Sección -> Página -> Módulo */}
+        <nav className="flex-1 px-3 overflow-y-auto space-y-4 py-2 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+          {visibleSections.map((section: SectionItem) => {
+            const isSectionOpen = expandedSections[section.id] !== false;
+            const SectionIcon = section.icon;
+
+            return (
+              <div key={section.id} className="space-y-1">
+                {/* Nivel 1: SECCIÓN */}
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/30 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5">
+                    {SectionIcon && <SectionIcon size={12} className="opacity-70" />}
+                    <span>{section.name}</span>
+                  </div>
+                  <ChevronDown
+                    size={13}
+                    className={clsx(
+                      'transition-transform duration-200 opacity-60',
+                      !isSectionOpen && '-rotate-90',
+                    )}
+                  />
+                </button>
+
+                {/* Nivel 2: PÁGINAS dentro de la Sección */}
+                {isSectionOpen && (
+                  <ul className="space-y-0.5">
+                    {section.pages.map((page: PageItem) => {
+                      const PageIcon = page.icon;
+                      const hasModules = Boolean(page.modules && page.modules.length > 0);
+                      const isPageActive = location.pathname === page.path;
+                      // Si no fue clickeado explícitamente, se auto-expande si la página está activa
+                      const isPageOpen = expandedPages[page.id] ?? isPageActive;
+
+                      return (
+                        <li key={page.id} className="space-y-1">
+                          <div className="flex items-center group">
+                            <NavLink
+                              to={page.path}
+                              className={({ isActive }) =>
+                                clsx(
+                                  'flex-1 flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 min-w-0',
+                                  isActive
+                                    ? 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 font-semibold shadow-2xs border border-violet-200/60 dark:border-violet-800/30'
+                                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-zinc-100',
+                                )
+                              }
+                            >
+                              <PageIcon size={15} className="shrink-0" />
+                              <span className="truncate">{page.name}</span>
+                            </NavLink>
+
+                            {/* Botón toggle para desplegar/colapsar submódulos */}
+                            {hasModules && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  togglePage(page.id);
+                                }}
+                                title={isPageOpen ? 'Ocultar módulos' : 'Ver módulos'}
+                                className="p-1.5 mr-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors shrink-0"
+                              >
+                                <ChevronDown
+                                  size={12}
+                                  className={clsx(
+                                    'transition-transform duration-200',
+                                    !isPageOpen && '-rotate-90',
+                                  )}
+                                />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Nivel 3: MÓDULOS (Ramas guía de árbol visual) */}
+                          {hasModules && isPageOpen && (
+                            <div className="relative ml-5 pl-3 pt-0.5 pb-1 border-l-2 border-zinc-200 dark:border-zinc-800/80 space-y-1">
+                              {page.modules!.map((mod) => (
+                                <NavLink
+                                  key={mod.key}
+                                  to={page.path}
+                                  className="group flex items-center gap-2 py-1 px-2 rounded-md text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40 transition-colors"
+                                >
+                                  {/* Conector tipo árbol / dot indicador */}
+                                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-violet-500 transition-colors shrink-0" />
+                                  <span className="truncate">{mod.name}</span>
+                                </NavLink>
+                              ))}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </div>
 
