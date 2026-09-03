@@ -58,7 +58,6 @@ export function InviteMemberModal({
   };
 
   const roleDescriptions: Record<Role, string> = {
-    SUPERADMIN: 'Acceso global a toda la infraestructura Aurea.',
     OWNER: 'Control total de facturación, ajustes, equipo y catálogo.',
     MANAGER: 'Gestión operativa, administración de catálogo y turnos.',
     STAFF: 'Visualización de pedidos, reservas y atención al cliente.',

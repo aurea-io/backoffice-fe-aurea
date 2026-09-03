@@ -13,7 +13,6 @@ import { authService } from '../../services/auth.service';
 import { tenantService } from '../../services/tenant.service';
 import { useCapability } from '../../hooks/useCapability';
 import {
-  SUPERADMIN_TAXONOMY,
   PAGE_ICONS,
   SECTION_ICONS,
   DEFAULT_PAGE_ICON,
@@ -27,16 +26,14 @@ import type { NavigationSection } from '../../types/navigation.types';
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, clearAuth, isSuperadmin, accessToken } = useAuthStore();
-  const { currentTenant, clearTenant } = useTenantStore();
+  const { user, clearAuth, accessToken } = useAuthStore();
+  const { currentTenant, clearTenant, navigation, setNavigation } = useTenantStore();
   const { hasCapability, hasPermission } = useCapability();
 
-  // Navegación dinámica provista por la Base de Datos
-  const [dynamicSections, setDynamicSections] = useState<NavigationSection[]>([]);
   const [isLoadingNav, setIsLoadingNav] = useState(false);
 
   useEffect(() => {
-    if (!currentTenant || isSuperadmin || !accessToken) return;
+    if (!currentTenant || !accessToken) return;
 
     let isMounted = true;
     setIsLoadingNav(true);
@@ -45,7 +42,7 @@ export function Sidebar() {
       .getNavigation()
       .then((data) => {
         if (isMounted && data?.sections) {
-          setDynamicSections(data.sections);
+          setNavigation(data.sections);
         }
       })
       .catch((err) => {
@@ -58,7 +55,7 @@ export function Sidebar() {
     return () => {
       isMounted = false;
     };
-  }, [currentTenant?.tenantId, isSuperadmin, accessToken]);
+  }, [currentTenant?.tenantId, accessToken]);
 
   // Estados de expansión de secciones y páginas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -101,16 +98,12 @@ export function Sidebar() {
 
   // Secciones visibles calculadas (100% dinámicas desde la Base de Datos)
   const visibleSections = useMemo((): SectionItem[] => {
-    if (isSuperadmin) {
-      return [SUPERADMIN_TAXONOMY];
-    }
-
     if (!currentTenant) {
       return [];
     }
 
     // Mapear la taxonomía recibida del servidor asignando iconos dinámicamente
-    return dynamicSections.map((sec) => ({
+    return navigation.map((sec) => ({
       id: sec.id,
       name: sec.name,
       description: sec.description,
@@ -128,7 +121,7 @@ export function Sidebar() {
         })),
       })),
     }));
-  }, [isSuperadmin, currentTenant, dynamicSections]);
+  }, [currentTenant, navigation]);
 
   return (
     <aside className="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-[#0e0f17] border-r border-zinc-200/80 dark:border-zinc-800/80 z-40 justify-between select-none">
@@ -169,9 +162,12 @@ export function Sidebar() {
                 {isSectionOpen && (
                   <ul className="space-y-0.5">
                     {section.pages.map((page: PageItem) => {
+                      const pagePath = page.path.startsWith('/') ? page.path : `/${page.path}`;
+                      const canonicalPath = `/${section.id}/${page.id}`;
+                      const targetPath = pagePath === `/${page.id}` ? canonicalPath : pagePath;
                       const PageIcon = page.icon ?? DEFAULT_PAGE_ICON;
                       const hasModules = Boolean(page.modules && page.modules.length > 0);
-                      const isPageActive = location.pathname === page.path;
+                      const isPageActive = location.pathname === targetPath || location.pathname === pagePath;
                       // Si no fue clickeado explícitamente, se auto-expande si la página está activa
                       const isPageOpen = expandedPages[page.id] ?? isPageActive;
 
@@ -179,7 +175,7 @@ export function Sidebar() {
                         <li key={page.id} className="space-y-1">
                           <div className="flex items-center group">
                             <NavLink
-                              to={page.path}
+                              to={targetPath}
                               className={({ isActive }) =>
                                 clsx(
                                   'flex-1 flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 min-w-0',
@@ -222,7 +218,7 @@ export function Sidebar() {
                               {page.modules!.map((mod) => (
                                 <NavLink
                                   key={mod.key}
-                                  to={page.path}
+                                  to={targetPath}
                                   className="group flex items-center gap-2 py-1 px-2 rounded-md text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40 transition-colors"
                                 >
                                   {/* Conector tipo árbol / dot indicador */}
@@ -262,7 +258,7 @@ export function Sidebar() {
                   {user.name}
                 </p>
                 <span className="inline-block text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 capitalize truncate">
-                  {isSuperadmin ? 'Superadmin' : currentTenant?.role ? currentTenant.role.toLowerCase() : 'Usuario'}
+                  {currentTenant?.role ? currentTenant.role.toLowerCase() : 'Usuario'}
                 </span>
               </div>
             </div>

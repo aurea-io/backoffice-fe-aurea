@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import type { TenantContext, FeatureKey } from '../types';
 
-export type PlatformMode = 'superadmin' | 'operation';
+import type { NavigationSection } from '../types/navigation.types';
+
+export type PlatformMode = 'operation';
 
 const ACTIVE_TENANT_KEY = 'aurea-active-tenant-id';
 const PLATFORM_MODE_KEY = 'aurea-platform-mode';
+const NAVIGATION_CACHE_KEY = 'aurea-navigation-cache';
 
 interface TenantState {
   currentTenant: TenantContext | null;
@@ -12,12 +15,14 @@ interface TenantState {
   isLoadingTenant: boolean;
   platformMode: PlatformMode;
   capabilities: Record<string, boolean>;
+  navigation: NavigationSection[];
 
   setCurrentTenant: (tenant: TenantContext | null) => void;
   setActiveTenantId: (tenantId: string | null) => void;
   setLoadingTenant: (loading: boolean) => void;
   hasFeature: (feature: FeatureKey) => boolean;
   clearTenant: () => void;
+  setNavigation: (navigation: NavigationSection[]) => void;
 
   /** Switch to operation mode inside a specific tenant */
   enterTenantOperation: (tenantId: string) => void;
@@ -42,9 +47,18 @@ function loadPlatformMode(): PlatformMode {
   try {
     const stored = localStorage.getItem(PLATFORM_MODE_KEY);
     if (stored === 'operation') return 'operation';
-    return 'superadmin';
+    return 'operation';
   } catch {
-    return 'superadmin';
+    return 'operation';
+  }
+}
+
+function loadNavigationCache(): NavigationSection[] {
+  try {
+    const raw = localStorage.getItem(NAVIGATION_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
   }
 }
 
@@ -54,6 +68,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   isLoadingTenant: false,
   platformMode: loadPlatformMode(),
   capabilities: {},
+  navigation: loadNavigationCache(),
 
   setCurrentTenant: (tenant) => {
     if (tenant) {
@@ -104,14 +119,30 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   hasFeature: (feature) => {
     const current = get().currentTenant;
     if (!current) return false;
-    if (current.role === 'SUPERADMIN') return true;
     return current.activeFeatures?.includes(feature) ?? false;
   },
 
   clearTenant: () => {
     localStorage.removeItem(ACTIVE_TENANT_KEY);
     localStorage.removeItem(PLATFORM_MODE_KEY);
-    set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, capabilities: {}, platformMode: 'superadmin' });
+    localStorage.removeItem(NAVIGATION_CACHE_KEY);
+    set({
+      currentTenant: null,
+      activeTenantId: null,
+      isLoadingTenant: false,
+      capabilities: {},
+      navigation: [],
+      platformMode: 'operation',
+    });
+  },
+
+  setNavigation: (navigation) => {
+    try {
+      localStorage.setItem(NAVIGATION_CACHE_KEY, JSON.stringify(navigation));
+    } catch {
+      // ignore
+    }
+    set({ navigation });
   },
 
   enterTenantOperation: (tenantId) => {
@@ -122,7 +153,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 
   returnToPlatform: () => {
     localStorage.setItem(PLATFORM_MODE_KEY, 'superadmin');
-    set({ platformMode: 'superadmin', currentTenant: null, activeTenantId: null });
+    set({ platformMode: 'operation', currentTenant: null, activeTenantId: null });
     localStorage.removeItem(ACTIVE_TENANT_KEY);
   },
 

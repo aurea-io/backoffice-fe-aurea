@@ -1,19 +1,16 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Store, ShoppingBag, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings } from 'lucide-react';
 import clsx from 'clsx';
-import { useAuthStore } from '../../store/authStore';
 import { useCapability } from '../../hooks/useCapability';
 
 export function MobileNav() {
-  const { isSuperadmin } = useAuthStore();
   const { hasCapability } = useCapability();
 
   const navItems = [
     { label: 'Resumen', path: '/dashboard', icon: LayoutDashboard, show: true },
-    { label: 'Tenants', path: '/tenants', icon: Store, show: isSuperadmin },
-    { label: 'Catálogo', path: '/catalog', icon: ShoppingBag, show: !isSuperadmin && hasCapability('catalog') },
-    { label: 'Equipo', path: '/members', icon: Users, show: !isSuperadmin && hasCapability('tenant:employees:read') },
-    { label: 'Ajustes', path: '/settings', icon: Settings, show: !isSuperadmin },
+    { label: 'Catálogo', path: '/catalog', icon: ShoppingBag, show: hasCapability('catalog') },
+    { label: 'Equipo', path: '/members', icon: Users, show: hasCapability('tenant:employees:read') },
+    { label: 'Ajustes', path: '/settings', icon: Settings, show: true },
   ];
 
   return (

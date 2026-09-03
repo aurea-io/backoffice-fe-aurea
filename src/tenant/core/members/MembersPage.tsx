@@ -53,7 +53,6 @@ export default function MembersPage() {
   };
 
   const roleBadges: Record<Role, { variant: 'violet' | 'emerald' | 'amber' | 'zinc'; label: string }> = {
-    SUPERADMIN: { variant: 'violet', label: 'Superadmin' },
     OWNER: { variant: 'violet', label: 'Owner / Dueño' },
     MANAGER: { variant: 'emerald', label: 'Manager' },
     STAFF: { variant: 'amber', label: 'Staff' },

@@ -1,5 +1,5 @@
 // ── Roles & Permissions ──────────────────────────────────────────────────
-export type Role = 'SUPERADMIN' | 'OWNER' | 'MANAGER' | 'STAFF' | 'CASHIER';
+export type Role = 'OWNER' | 'MANAGER' | 'STAFF' | 'CASHIER';
 
 export type FeatureKey =
   | 'catalog'
@@ -18,7 +18,6 @@ export interface User {
   name: string;
   avatarUrl?: string | null;
   preferences?: Record<string, unknown> | null;
-  isAureaSuperadmin?: boolean;
   active?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -213,7 +212,6 @@ export interface UserContextResponse {
     name: string;
     email: string;
     avatarUrl?: string | null;
-    isAureaSuperadmin: boolean;
   };
   currentContext: TenantContext | null;
   allTenants: TenantSummary[];

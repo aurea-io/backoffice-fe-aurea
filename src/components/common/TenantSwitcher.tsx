@@ -1,15 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Store, Check, Plus, ShieldAlert, Sparkles } from 'lucide-react';
+import { ChevronDown, Store, Check, Plus, Sparkles } from 'lucide-react';
 import { useTenantStore } from '../../store/tenantStore';
 import { useAuthStore } from '../../store/authStore';
-import { useNavigate } from 'react-router-dom';
 
 export function TenantSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-
-  const { tenants, isSuperadmin } = useAuthStore();
+  const { tenants } = useAuthStore();
   const { currentTenant, activeTenantId, setActiveTenantId } = useTenantStore();
 
   useEffect(() => {
@@ -100,21 +97,6 @@ export function TenantSwitcher() {
             )}
           </div>
 
-          {isSuperadmin && (
-            <div className="pt-1 mt-1 border-t border-zinc-100 dark:border-zinc-800/80">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  navigate('/tenants');
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-colors"
-              >
-                <ShieldAlert size={14} />
-                <span>Panel SuperAdmin</span>
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>

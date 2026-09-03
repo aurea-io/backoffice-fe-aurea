@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useTenantStore } from './store/tenantStore';
 import { authService } from './services/auth.service';
+import { tenantService } from './services/tenant.service';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { SuperadminRoute } from './components/auth/SuperadminRoute';
 import { CapabilityRoute } from './components/auth/CapabilityRoute';
 
 import LoginPage from './features/auth/LoginPage';
@@ -15,7 +15,6 @@ import MagicLinkPage from './features/auth/MagicLinkPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { DashboardPage } from './tenant/core/dashboard/DashboardPage';
-import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPage';
 import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
 import OrdersPage from './tenant/sections/commerce/orders/OrdersPage';
 import InventoryPage from './tenant/sections/commerce/inventory/InventoryPage';
@@ -31,14 +30,49 @@ import InvitationsPage from './tenant/core/members/invitations/InvitationsPage';
 import BillingPage from './tenant/core/billing/BillingPage';
 import SettingsPage from './tenant/core/theme/SettingsPage';
 import BookingsPage from './tenant/sections/services/bookings/BookingsPage';
-import SuperadminPlansPage from './platform/superadmin/SuperadminPlansPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
-import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
-import { TenantDetailPage } from './platform/superadmin/TenantDetailPage';
+
+const PAGE_COMPONENTS: Record<string, React.ComponentType> = {
+  dashboard: DashboardPage,
+  catalog: CatalogPage,
+  bookings: BookingsPage,
+  tables: TablesPage,
+  'table-bookings': TableBookingsPage,
+  orders: OrdersPage,
+  kitchen: KitchenPage,
+  inventory: InventoryPage,
+  pos: PosPage,
+  clients: ClientsPage,
+  coupons: CouponsPage,
+  loyalty: LoyaltyPage,
+  members: MembersPage,
+  invitations: InvitationsPage,
+  theme: SettingsPage,
+  settings: SettingsPage,
+  billing: BillingPage,
+};
 
 function App() {
   const { setAuth, clearAuth, setInitializing, isAuthenticated } = useAuthStore();
-  const { activeTenantId, setActiveTenantId, setCurrentTenant, setCapabilities } = useTenantStore();
+  const { activeTenantId, setCurrentTenant, setCapabilities, navigation, setNavigation } = useTenantStore();
+
+  const dynamicRoutes = useMemo(() => {
+    const pages: Array<{
+      id: string;
+      path: string;
+      sectionId: string;
+      feature?: string;
+      permissions?: string[];
+      modules?: Array<{ key: string; name: string; description?: string }>;
+    }> = [];
+
+    for (const section of navigation) {
+      for (const page of section.pages) {
+        pages.push({ ...page, sectionId: section.id });
+      }
+    }
+    return pages;
+  }, [navigation]);
 
   // 1. Silent token refresh on initial startup
   useEffect(() => {
@@ -50,7 +84,7 @@ function App() {
         if (isMounted) {
           setAuth(res.user, res.accessToken, res.tenants);
 
-          // If session is valid, also fetch complete context and superadmin status
+          // If session is valid, fetch the complete tenant context
           try {
             const meData = await authService.getMe(activeTenantId || undefined);
             if (isMounted) {
@@ -58,15 +92,22 @@ function App() {
                 meData.user,
                 res.accessToken,
                 meData.allTenants,
-                meData.user.isAureaSuperadmin,
               );
               if (meData.currentContext) {
                 setCurrentTenant(meData.currentContext);
                 try {
-                  const capabilities = await authService.getCapabilities(meData.currentContext.tenantId);
-                  if (isMounted) setCapabilities(capabilities.map);
+                  const [capabilities, navData] = await Promise.all([
+                    authService.getCapabilities(meData.currentContext.tenantId),
+                    tenantService.getNavigation(),
+                  ]);
+                  if (isMounted) {
+                    setCapabilities(capabilities.map);
+                    if (navData?.sections) {
+                      setNavigation(navData.sections);
+                    }
+                  }
                 } catch (capabilityErr) {
-                  console.error('Error fetching capabilities:', capabilityErr);
+                  console.error('Error fetching capabilities or navigation:', capabilityErr);
                 }
               }
             }
@@ -90,18 +131,18 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [setAuth, clearAuth, setInitializing, activeTenantId, setCurrentTenant, setCapabilities]);
+  }, [setAuth, clearAuth, setInitializing, activeTenantId, setCurrentTenant, setCapabilities, setNavigation]);
 
   return (
     <Routes>
       {/* Public Authentication Routes */}
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+        element={isAuthenticated ? <Navigate to="/core/dashboard" replace /> : <LoginPage />}
       />
       <Route
         path="/register"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
+        element={isAuthenticated ? <Navigate to="/core/dashboard" replace /> : <RegisterPage />}
       />
       <Route path="/auth/magic" element={<MagicLinkPage />} />
       <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
@@ -112,47 +153,61 @@ function App() {
       {/* Protected App Routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route index element={<Navigate to="/core/dashboard" replace />} />
+          <Route path="core/dashboard" element={<DashboardPage />} />
+          <Route path="dashboard" element={<Navigate to="/core/dashboard" replace />} />
 
-          <Route element={<CapabilityRoute capability="catalog" permission={['catalog:read', 'catalog.view', 'catalog:write']} />}>
-            <Route path="catalog" element={<CatalogPage />} />
-          </Route>
-          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="appointments" element={<BookingsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="bookings" element={<BookingsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="tables" permission={['bookings.view', 'tables.view']} />}><Route path="table-bookings" element={<TableBookingsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="inventory" permission={['inventory:read', 'inventory.manage']} />}><Route path="inventory" element={<InventoryPage />} /></Route>
-          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="restaurant" element={<TablesPage />} /></Route>
-          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="tables" element={<TablesPage />} /></Route>
-          <Route element={<CapabilityRoute capability="orders" permission={['orders:read', 'orders.view']} />}><Route path="orders" element={<OrdersPage />} /></Route>
-          <Route element={<CapabilityRoute capability="kitchen" permission={['kitchen.view', 'kitchen:read']} />}><Route path="kitchen" element={<KitchenPage />} /></Route>
-          <Route element={<CapabilityRoute capability="clients" permission={['clients:read', 'clients.view']} />}><Route path="clients" element={<ClientsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="coupons" element={<CouponsPage />} /></Route>
-          <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="loyalty" element={<LoyaltyPage />} /></Route>
-          <Route element={<CapabilityRoute capability="pos_cashier" permission={['pos.cashier', 'pos:read']} />}><Route path="pos" element={<PosPage />} /></Route>
-          <Route element={<CapabilityRoute capability="tenant:employees:read" />}>
-            <Route path="members" element={<MembersPage />} />
-          </Route>
-          <Route element={<CapabilityRoute capability="tenant:employees:manage" />}>
-            <Route path="invitations" element={<InvitationsPage />} />
-          </Route>
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="settings/billing" element={<BillingPage />} />
+          {/* Rutas generadas automáticamente desde la Base de Datos (MongoDB) */}
+          {dynamicRoutes.map((page) => {
+            const Component = PAGE_COMPONENTS[page.id];
+            if (!Component) return null;
 
-          {/* Superadmin Only Routes */}
-          <Route element={<SuperadminRoute />}>
-            <Route path="tenants" element={<SuperadminTenantsPage />} />
-            <Route path="tenants/:id" element={<TenantDetailPage />} />
-            <Route path="superadmin/features" element={<SuperadminFeaturesPage />} />
-            <Route path="superadmin/plans" element={<SuperadminPlansPage />} />
-            <Route path="preview/:tenantId" element={<PublicTenantPreviewPage />} />
-            <Route path="superadmin/tenants" element={<Navigate to="/tenants" replace />} />
-          </Route>
+            const routePath = page.path.startsWith('/') ? page.path.slice(1) : page.path;
+            const canonicalPath = `${page.sectionId}/${page.id}`;
+            if (routePath === 'core/dashboard') return null;
+
+            if (page.feature) {
+              return (
+                <Route
+                  key={`${page.id}-${routePath}`}
+                  element={<CapabilityRoute capability={page.feature} permission={page.permissions} />}
+                >
+                  <Route path={routePath} element={<Component />} />
+                  {canonicalPath !== routePath && <Route path={canonicalPath} element={<Component />} />}
+                </Route>
+              );
+            }
+
+            return (
+              <Route
+                key={`${page.id}-${routePath}`}
+                path={routePath}
+                element={<Component />}
+              />
+            );
+          })}
+
+          {/* Subrutas dinámicas para submódulos jerárquicos (ej: core/members/invitations) */}
+          {dynamicRoutes.flatMap((page) =>
+            (page.modules || []).map((m) => {
+              const SubComponent = PAGE_COMPONENTS[m.key];
+              if (!SubComponent) return null;
+              const routePath = page.path.startsWith('/') ? page.path.slice(1) : page.path;
+              return (
+                <Route
+                  key={`${page.id}-${m.key}`}
+                  path={`${routePath}/${m.key}`}
+                  element={<SubComponent />}
+                />
+              );
+            })
+          )}
+
         </Route>
       </Route>
 
       {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/core/dashboard" replace />} />
     </Routes>
   );
 }
