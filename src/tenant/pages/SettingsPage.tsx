@@ -85,9 +85,10 @@ export default function SettingsPage() {
       };
 
       const updated = await tenantService.updateSettings(updatedSettings);
-      if (currentTenant) {
+      const latestTenant = useTenantStore.getState().currentTenant;
+      if (latestTenant) {
         setCurrentTenant({
-          ...currentTenant,
+          ...latestTenant,
           settings: updated.settings || updatedSettings,
         });
       }
@@ -105,14 +106,16 @@ export default function SettingsPage() {
     setIsRollingBack(true);
     try {
       await tenantService.rollbackBranding(version);
+      const targetTenantId = useTenantStore.getState().activeTenantId;
       const [updatedTenant, versions] = await Promise.all([
-        tenantService.getContext(activeTenantId || undefined),
+        tenantService.getContext(targetTenantId || undefined),
         tenantService.getBrandingVersions(),
       ]);
-      if (currentTenant) {
+      const latestTenant = useTenantStore.getState().currentTenant;
+      if (latestTenant) {
         setCurrentTenant({
-          ...currentTenant,
-          settings: (updatedTenant.settings || currentTenant.settings) as TenantSettings,
+          ...latestTenant,
+          settings: (updatedTenant.settings || latestTenant.settings) as TenantSettings,
         });
       }
       setBrandingVersions(versions);

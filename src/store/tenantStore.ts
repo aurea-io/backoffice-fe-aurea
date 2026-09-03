@@ -57,19 +57,27 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 
   setCurrentTenant: (tenant) => {
     if (tenant) {
-      const resolvedTenantId = tenant.tenantId || (tenant as any).id;
-      if (resolvedTenantId && resolvedTenantId !== 'undefined' && resolvedTenantId !== 'null') {
-        localStorage.setItem(ACTIVE_TENANT_KEY, resolvedTenantId);
+      const resolvedTenantId = [
+        tenant.tenantId,
+        (tenant as TenantContext & { id?: string }).id,
+      ].find(
+        (id): id is string => Boolean(id) && id !== 'undefined' && id !== 'null',
+      );
+      if (!resolvedTenantId) {
+        localStorage.removeItem(ACTIVE_TENANT_KEY);
+        set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, capabilities: {} });
+        return;
       }
+      localStorage.setItem(ACTIVE_TENANT_KEY, resolvedTenantId);
       const safeTenant: TenantContext = {
         ...tenant,
-        tenantId: resolvedTenantId || tenant.tenantId,
+        tenantId: resolvedTenantId,
         activeFeatures: tenant.activeFeatures || [],
         permissions: tenant.permissions || [],
       };
       set({
         currentTenant: safeTenant,
-        activeTenantId: resolvedTenantId || null,
+        activeTenantId: resolvedTenantId,
         isLoadingTenant: false,
         capabilities: {},
       });
