@@ -22,6 +22,7 @@ import {
 export interface ModuleItem {
   key: string;
   name: string;
+  feature?: string;
   description?: string;
 }
 
@@ -30,7 +31,8 @@ export interface PageItem {
   name: string;
   path: string;
   icon: ComponentType<{ size?: number; className?: string }>;
-  capability?: string;
+  feature?: string; // Feature de tenant obligatoria (debe estar en tenant.activeFeatures)
+  capability?: string; // Permiso granular (ej: tenant:employees:read)
   permissions?: string[];
   modules?: ModuleItem[];
   superadminOnly?: boolean;
@@ -108,6 +110,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Agenda de Turnos',
         path: '/appointments',
         icon: CalendarDays,
+        feature: 'bookings',
         capability: 'bookings',
         permissions: ['appointments:read', 'bookings.view'],
         modules: [
@@ -131,6 +134,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Catálogo',
         path: '/catalog',
         icon: ShoppingBag,
+        feature: 'catalog',
         capability: 'catalog',
         permissions: ['catalog:read', 'catalog.view', 'catalog:write'],
         modules: [
@@ -146,6 +150,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Inventario',
         path: '/inventory',
         icon: Package,
+        feature: 'inventory',
         capability: 'inventory',
         permissions: ['inventory:read', 'inventory.manage'],
         modules: [
@@ -159,6 +164,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Caja & Cobros',
         path: '/pos',
         icon: Banknote,
+        feature: 'pos_cashier',
         capability: 'pos_cashier',
         permissions: ['pos.cashier', 'pos:read'],
         modules: [
@@ -180,6 +186,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Salón y Mesas',
         path: '/restaurant',
         icon: Armchair,
+        feature: 'tables',
         capability: 'tables',
         permissions: ['tables.view', 'tables:read', 'orders:create'],
         modules: [
@@ -193,8 +200,9 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Reservas de Salón',
         path: '/table-bookings',
         icon: CalendarClock,
-        capability: 'bookings',
-        permissions: ['bookings.view', 'tables.view'],
+        feature: 'tables',
+        capability: 'tables',
+        permissions: ['tables.view', 'bookings.view'],
         modules: [
           { key: 'qr_view', name: 'Reserva Online' },
           { key: 'table_request', name: 'Asignación de Comensales' },
@@ -205,6 +213,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Cocina / KDS',
         path: '/kitchen',
         icon: ChefHat,
+        feature: 'kitchen',
         capability: 'kitchen',
         permissions: ['kitchen.view', 'kitchen:read'],
         modules: [
@@ -225,6 +234,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Clientes',
         path: '/clients',
         icon: Contact,
+        feature: 'clients',
         capability: 'clients',
         permissions: ['clients:read', 'clients.view'],
         modules: [
@@ -246,6 +256,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Cupones',
         path: '/coupons',
         icon: BadgePercent,
+        feature: 'marketing',
         capability: 'marketing',
         permissions: ['marketing:read'],
         modules: [
@@ -258,6 +269,7 @@ export const CANONICAL_TAXONOMY: SectionItem[] = [
         name: 'Fidelización',
         path: '/loyalty',
         icon: Gift,
+        feature: 'marketing',
         capability: 'marketing',
         permissions: ['marketing:read'],
         modules: [

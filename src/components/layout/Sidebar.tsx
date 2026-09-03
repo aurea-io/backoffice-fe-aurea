@@ -16,6 +16,7 @@ import {
   SUPERADMIN_TAXONOMY,
   type SectionItem,
   type PageItem,
+  type ModuleItem,
 } from '../../config/taxonomy.config';
 
 export function Sidebar() {
@@ -64,7 +65,7 @@ export function Sidebar() {
     }));
   };
 
-  // Filtrado de páginas según capacidades, permisos y rol
+  // Filtrado de páginas según si el comercio tiene la función activada y el rol tiene permisos
   const isPageVisible = (page: PageItem): boolean => {
     if (page.superadminOnly) {
       return Boolean(isSuperadmin);
@@ -75,14 +76,32 @@ export function Sidebar() {
     if (!currentTenant) {
       return false;
     }
-    if (!page.capability) {
-      return true; // Si no requiere capability específica (ej: dashboard, settings)
-    }
-    const capOk = hasCapability(page.capability);
-    if (!capOk) return false;
 
+    // 1. Regla Mandatoria de Tenant: si la página depende de una función (feature) del negocio
+    if (page.feature) {
+      const isFeatureActive = currentTenant.activeFeatures?.includes(page.feature) ?? false;
+      if (!isFeatureActive) {
+        return false; // Si el comercio no contrató / no tiene activa la función, NO mostrar en menú
+      }
+    }
+
+    // 2. Si requiere una capability o permiso interno de colaborador (ej: tenant:employees:read)
+    if (page.capability && !page.feature) {
+      const capOk = hasCapability(page.capability);
+      if (!capOk) return false;
+    }
+
+    // 3. Si requiere permisos específicos para el rol del colaborador
     if (page.permissions && page.permissions.length > 0) {
       return hasPermission(...page.permissions);
+    }
+
+    return true;
+  };
+
+  const isModuleVisible = (mod: ModuleItem): boolean => {
+    if (mod.feature) {
+      return currentTenant?.activeFeatures?.includes(mod.feature) ?? false;
     }
     return true;
   };
@@ -191,7 +210,7 @@ export function Sidebar() {
                           {/* Nivel 3: MÓDULOS (Ramas guía de árbol visual) */}
                           {hasModules && isPageOpen && (
                             <div className="relative ml-5 pl-3 pt-0.5 pb-1 border-l-2 border-zinc-200 dark:border-zinc-800/80 space-y-1">
-                              {page.modules!.map((mod) => (
+                              {page.modules!.filter(isModuleVisible).map((mod) => (
                                 <NavLink
                                   key={mod.key}
                                   to={page.path}

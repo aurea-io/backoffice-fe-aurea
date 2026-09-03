@@ -12,8 +12,12 @@ export function useCapability() {
     (capability: string) => {
       if (isSuperadmin || currentTenant?.role === 'SUPERADMIN') return true;
       if (capabilities[capability] !== undefined) return capabilities[capability];
-      return currentTenant?.permissions?.includes(capability) === true ||
-        currentTenant?.activeFeatures?.includes(capability) === true;
+      
+      // 1. Si la capability está explícitamente activa en el tenant
+      if (currentTenant?.activeFeatures?.includes(capability) === true) return true;
+
+      // 2. Si es un permiso de colaborador granular (ej: tenant:employees:read)
+      return currentTenant?.permissions?.includes(capability) === true;
     },
     [capabilities, currentTenant, isSuperadmin],
   );
