@@ -34,17 +34,23 @@ export default function CatalogPage() {
   const [importErrors, setImportErrors] = useState<Array<{ row: number; message: string }>>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [isDialogSubmitting, setIsDialogSubmitting] = useState(false);
+  const [dialogError, setDialogError] = useState<string | null>(null);
+  const [refreshFailed, setRefreshFailed] = useState(false);
 
-  const fetchItems = async () => {
-    if (!activeTenantId) return;
+  const fetchItems = async (): Promise<boolean> => {
+    if (!activeTenantId) return false;
     setIsLoading(true);
     try {
       const [res, categories, modifiers] = await Promise.all([catalogService.getAll(), catalogService.getCategories(), catalogService.getModifierGroups()]);
       setItems(res);
       setCategoriesData(categories);
       setModifierGroups(modifiers);
+      setRefreshFailed(false);
+      return true;
     } catch (err) {
       console.error('Error fetching catalog:', err);
+      setRefreshFailed(true);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +125,11 @@ export default function CatalogPage() {
     setImportErrors([]);
     try {
       const result = await catalogService.importCsv(await file.text());
-      await fetchItems();
+      if (!await fetchItems()) {
+        setActionError('La importación se completó, pero no pudimos actualizar el catálogo. Reintentá actualizarlo.');
+        setImportErrors(result.errors);
+        return;
+      }
       setImportErrors(result.errors);
       setActionMessage(`Importación completa: ${result.imported} importados, ${result.validRows} filas válidas y ${result.errors.length} errores.`);
     } catch (err: any) {
@@ -135,22 +145,34 @@ export default function CatalogPage() {
   const closeCatalogDialog = () => {
     setCatalogDialog(null);
     setDialogValue('');
+    setDialogError(null);
     setItemToDelete(null);
     setCategoryToDelete(null);
   };
 
   const submitCatalogDialog = async () => {
+    if (catalogDialog !== 'delete' && !dialogValue.trim()) {
+      setDialogError('Ingresá un nombre para continuar.');
+      return;
+    }
+    setDialogError(null);
     setIsDialogSubmitting(true);
     try {
       if (catalogDialog === 'category') {
-        if (!dialogValue.trim()) return;
         await catalogService.createCategory({ name: dialogValue.trim() });
-        await fetchItems();
+        if (!await fetchItems()) {
+          setActionMessage(null);
+          setActionError('La categoría se creó, pero no pudimos actualizar el catálogo. Reintentá actualizarlo.');
+          return;
+        }
         setActionMessage('Categoría creada correctamente.');
       } else if (catalogDialog === 'modifier') {
-        if (!dialogValue.trim()) return;
         await catalogService.createModifierGroup({ name: dialogValue.trim(), options: [] });
-        await fetchItems();
+        if (!await fetchItems()) {
+          setActionMessage(null);
+          setActionError('El grupo se creó, pero no pudimos actualizar el catálogo. Reintentá actualizarlo.');
+          return;
+        }
         setActionMessage('Grupo de modificadores creado correctamente.');
       } else if (catalogDialog === 'delete' && itemToDelete) {
         await catalogService.remove(itemToDelete.id);
@@ -175,6 +197,7 @@ export default function CatalogPage() {
     <div className="space-y-6 animate-in fade-in-50 duration-200">
       {actionMessage && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</div>}
       {actionError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-800/40 dark:bg-rose-950/30 dark:text-rose-200">{actionError}</div>}
+      {refreshFailed && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-100"><span>No se pudo actualizar el catálogo.</span><Button size="sm" variant="outline" onClick={() => void fetchItems()}>Reintentar</Button></div>}
       {importErrors.length > 0 && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-100"><p className="font-semibold">Detalle de errores del CSV</p><ul className="mt-2 list-disc space-y-1 pl-5">{importErrors.map((error, index) => <li key={`${error.row}-${index}`}>Fila {error.row}: {error.message}</li>)}</ul></div>}
 
       {/* Header */}
@@ -336,10 +359,10 @@ export default function CatalogPage() {
               {catalogDialog === 'delete' ? `¿Querés eliminar “${itemToDelete?.title || categoryToDelete?.name}”? Esta acción no se puede deshacer.` : 'Completá el nombre y confirmá para guardar.'}
             </DialogDescription>
           </DialogHeader>
-          {catalogDialog !== 'delete' && <Input autoFocus label="Nombre" value={dialogValue} onChange={(event) => setDialogValue(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && void submitCatalogDialog()} placeholder={catalogDialog === 'category' ? 'Ej: Peluquería' : 'Ej: Tamaño'} />}
+          {catalogDialog !== 'delete' && <Input autoFocus label="Nombre" value={dialogValue} error={dialogError || undefined} onChange={(event) => { setDialogValue(event.target.value); if (event.target.value.trim()) setDialogError(null); }} onKeyDown={(event) => event.key === 'Enter' && void submitCatalogDialog()} placeholder={catalogDialog === 'category' ? 'Ej: Peluquería' : 'Ej: Tamaño'} />}
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" disabled={isDialogSubmitting} onClick={closeCatalogDialog}>Cancelar</Button>
-            <Button type="button" variant={catalogDialog === 'delete' ? 'danger' : 'primary'} size="sm" disabled={isDialogSubmitting || (catalogDialog !== 'delete' && !dialogValue.trim())} onClick={() => void submitCatalogDialog()}>{isDialogSubmitting ? 'Guardando…' : catalogDialog === 'delete' ? 'Eliminar' : 'Guardar'}</Button>
+            <Button type="button" variant={catalogDialog === 'delete' ? 'danger' : 'primary'} size="sm" disabled={isDialogSubmitting} onClick={() => void submitCatalogDialog()}>{isDialogSubmitting ? 'Guardando…' : catalogDialog === 'delete' ? 'Eliminar' : 'Guardar'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
