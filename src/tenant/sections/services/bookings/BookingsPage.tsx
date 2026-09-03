@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, Check, X } from 'lucide-react';
+import { CalendarDays, Check, X, Plus, Clock, UserCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
 import { Button } from '../../../../components/ui/Button';
 import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
 import { bookingsApi } from './api';
+import { NewBookingModal } from './components/NewBookingModal';
 import type { Booking } from '../../../../types';
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -27,10 +29,15 @@ export default function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <span className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Servicios</span>
-        <h1 className="font-editorial text-3xl font-bold text-zinc-900 dark:text-white">Agenda y reservas</h1>
-        <p className="text-sm text-zinc-500">Confirmá, completá o cancelá las solicitudes del comercio.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-violet-600">Servicios</span>
+          <h1 className="font-editorial text-3xl font-bold text-zinc-900 dark:text-white">Agenda y reservas</h1>
+          <p className="text-sm text-zinc-500">Confirmá, completá o cancelá las solicitudes del comercio.</p>
+        </div>
+        <Button onClick={() => setIsModalOpen(true)} leftIcon={<Plus size={16} />}>
+          Nuevo Turno
+        </Button>
       </div>
       <Card variant="glass">
         <CardHeader>
@@ -73,6 +80,12 @@ export default function BookingsPage() {
           )}
         </CardContent>
       </Card>
+
+      <NewBookingModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={load}
+      />
     </div>
   );
 }

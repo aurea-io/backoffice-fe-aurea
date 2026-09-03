@@ -29,6 +29,7 @@ import MembersPage from './tenant/core/members/MembersPage';
 import InvitationsPage from './tenant/core/members/invitations/InvitationsPage';
 import BillingPage from './tenant/core/billing/BillingPage';
 import SettingsPage from './tenant/core/theme/SettingsPage';
+import ModulesPage from './tenant/core/modules/ModulesPage';
 import BookingsPage from './tenant/sections/services/bookings/BookingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
 
@@ -50,6 +51,7 @@ const PAGE_COMPONENTS: Record<string, React.ComponentType> = {
   theme: SettingsPage,
   settings: SettingsPage,
   billing: BillingPage,
+  modules: ModulesPage,
 };
 
 function App() {

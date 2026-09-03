@@ -6,4 +6,9 @@ export const ordersApi = {
     const { data } = await api.get<RestaurantOrder[]>('/orders');
     return data;
   },
+
+  async createOrder(dto: any): Promise<RestaurantOrder> {
+    const { data } = await api.post<RestaurantOrder>('/orders', dto);
+    return data;
+  },
 };
