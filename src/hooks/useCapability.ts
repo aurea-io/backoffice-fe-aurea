@@ -17,7 +17,9 @@ export function useCapability() {
       if (currentTenant?.activeFeatures?.includes(capability) === true) return true;
 
       // 2. Si es un permiso de colaborador granular (ej: tenant:employees:read)
-      return currentTenant?.permissions?.includes(capability) === true;
+      return currentTenant?.permissions?.some((permission) =>
+        permission === '*' || permission === 'all' || permission === capability,
+      ) === true;
     },
     [capabilities, currentTenant, isSuperadmin],
   );

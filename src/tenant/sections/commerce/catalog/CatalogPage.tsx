@@ -6,6 +6,7 @@ import { Button } from '../../../../components/ui/Button';
 import { Input } from '../../../../components/ui/Input';
 import { EmptyState } from '../../../../components/common/EmptyState';
 import { LoadingSpinner } from '../../../../components/common/LoadingSpinner';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../../components/ui/Dialog';
 import { CatalogCard } from './components/CatalogCard';
 import { CatalogItemModal } from './components/CatalogItemModal';
 import type { CatalogCategory, CatalogItem, CatalogModifierGroup, CreateCatalogItemInput, UpdateCatalogItemInput } from '../../../../types';
@@ -24,6 +25,12 @@ export default function CatalogPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<CatalogItem | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
+  const [catalogDialog, setCatalogDialog] = useState<'category' | 'modifier' | 'delete' | null>(null);
+  const [dialogValue, setDialogValue] = useState('');
+  const [itemToDelete, setItemToDelete] = useState<CatalogItem | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CatalogCategory | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchItems = async () => {
     if (!activeTenantId) return;
@@ -84,13 +91,10 @@ export default function CatalogPage() {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (window.confirm('¿Seguro que deseas eliminar este item del catálogo?')) {
-      try {
-        await catalogService.remove(id);
-        setItems((prev) => prev.filter((i) => i.id !== id));
-      } catch (err) {
-        console.error('Error deleting item:', err);
-      }
+    const item = items.find((candidate) => candidate.id === id);
+    if (item) {
+      setItemToDelete(item);
+      setCatalogDialog('delete');
     }
   };
 
@@ -104,10 +108,62 @@ export default function CatalogPage() {
   };
 
   const isBeautyVertical = currentTenant?.vertical === 'beauty';
-  const importCsv = async (file?: File) => { if (!file) return; const result = await catalogService.importCsv(await file.text()); await fetchItems(); window.alert(`Importados: ${result.imported}. Filas válidas: ${result.validRows}. Errores: ${result.errors.length}.`); };
+  const importCsv = async (file?: File) => {
+    if (!file) return;
+    try {
+      const result = await catalogService.importCsv(await file.text());
+      await fetchItems();
+      setActionError(null);
+      setActionMessage(`Importación completa: ${result.imported} importados, ${result.validRows} filas válidas y ${result.errors.length} errores.`);
+    } catch (err: any) {
+      setActionMessage(null);
+      setActionError(err.response?.data?.message || 'No se pudo importar el CSV. Revisá el formato e intentá nuevamente.');
+    } finally {
+      if (importInput.current) importInput.current.value = '';
+    }
+  };
+
+  const closeCatalogDialog = () => {
+    setCatalogDialog(null);
+    setDialogValue('');
+    setItemToDelete(null);
+    setCategoryToDelete(null);
+  };
+
+  const submitCatalogDialog = async () => {
+    try {
+      if (catalogDialog === 'category') {
+        if (!dialogValue.trim()) return;
+        await catalogService.createCategory({ name: dialogValue.trim() });
+        await fetchItems();
+        setActionMessage('Categoría creada correctamente.');
+      } else if (catalogDialog === 'modifier') {
+        if (!dialogValue.trim()) return;
+        await catalogService.createModifierGroup({ name: dialogValue.trim(), options: [] });
+        await fetchItems();
+        setActionMessage('Grupo de modificadores creado correctamente.');
+      } else if (catalogDialog === 'delete' && itemToDelete) {
+        await catalogService.remove(itemToDelete.id);
+        setItems((prev) => prev.filter((item) => item.id !== itemToDelete.id));
+        setActionMessage('Ítem eliminado correctamente.');
+      } else if (catalogDialog === 'delete' && categoryToDelete) {
+        await catalogService.removeCategory(categoryToDelete.id);
+        await fetchItems();
+        setActionMessage('Categoría eliminada correctamente.');
+      }
+      setActionError(null);
+      closeCatalogDialog();
+    } catch (err: any) {
+      setActionMessage(null);
+      setActionError(err.response?.data?.message || 'No se pudo completar la acción.');
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
+      {actionMessage && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-200">{actionMessage}</div>}
+      {actionError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-800/40 dark:bg-rose-950/30 dark:text-rose-200">{actionError}</div>}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -250,14 +306,30 @@ export default function CatalogPage() {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800/80 dark:bg-[#12131e]">
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold text-zinc-900 dark:text-white">Categorías</h2><p className="text-xs text-zinc-500">Organizá productos y servicios en niveles.</p></div><Button size="sm" variant="outline" onClick={async () => { const name = window.prompt('Nombre de la categoría'); if (name?.trim()) { await catalogService.createCategory({ name: name.trim() }); await fetchItems(); } }}> <Plus size={14} />Agregar</Button></div>
-          <div className="space-y-2">{categoriesData.map((category) => <div key={category.id} className="flex items-center justify-between rounded-xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900"><span>{category.parentId ? '↳ ' : ''}{category.name}</span><button className="text-xs text-rose-600" onClick={async () => { if (window.confirm(`¿Eliminar ${category.name}?`)) { await catalogService.removeCategory(category.id); await fetchItems(); } }}>Eliminar</button></div>)}{categoriesData.length === 0 && <p className="text-sm text-zinc-500">Todavía no hay categorías.</p>}</div>
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold text-zinc-900 dark:text-white">Categorías</h2><p className="text-xs text-zinc-500">Organizá productos y servicios en niveles.</p></div><Button size="sm" variant="outline" onClick={() => { setDialogValue(''); setCatalogDialog('category'); }}> <Plus size={14} />Agregar</Button></div>
+          <div className="space-y-2">{categoriesData.map((category) => <div key={category.id} className="flex items-center justify-between rounded-xl bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900"><span>{category.parentId ? '↳ ' : ''}{category.name}</span><button className="text-xs text-rose-600" onClick={() => { setCategoryToDelete(category); setCatalogDialog('delete'); }}>Eliminar</button></div>)}{categoriesData.length === 0 && <p className="text-sm text-zinc-500">Todavía no hay categorías.</p>}</div>
         </div>
         <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800/80 dark:bg-[#12131e]">
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold text-zinc-900 dark:text-white">Modificadores</h2><p className="text-xs text-zinc-500">Grupos de opciones para productos y servicios.</p></div><Button size="sm" variant="outline" onClick={async () => { const name = window.prompt('Nombre del grupo'); if (name?.trim()) { const option = window.prompt('Primera opción (opcional)'); await catalogService.createModifierGroup({ name: name.trim(), options: option?.trim() ? [{ name: option.trim() }] : [] }); await fetchItems(); } }}><Plus size={14} />Agregar</Button></div>
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="font-semibold text-zinc-900 dark:text-white">Modificadores</h2><p className="text-xs text-zinc-500">Grupos de opciones para productos y servicios.</p></div><Button size="sm" variant="outline" onClick={() => { setDialogValue(''); setCatalogDialog('modifier'); }}><Plus size={14} />Agregar</Button></div>
           <div className="space-y-2">{modifierGroups.map((group) => <div key={group.id} className="rounded-xl bg-zinc-50 px-3 py-2 dark:bg-zinc-900"><div className="flex justify-between text-sm"><span>{group.name}</span><span className="text-xs text-zinc-500">{group.minSelections}–{group.maxSelections} opciones</span></div><p className="mt-1 text-xs text-zinc-500">{group.options.map((option) => option.name).join(' · ') || 'Sin opciones cargadas'}</p></div>)}{modifierGroups.length === 0 && <p className="text-sm text-zinc-500">Todavía no hay grupos de modificadores.</p>}</div>
         </div>
       </section>
+
+      <Dialog open={catalogDialog !== null} onOpenChange={(open) => !open && closeCatalogDialog()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{catalogDialog === 'category' ? 'Nueva categoría' : catalogDialog === 'modifier' ? 'Nuevo grupo de modificadores' : 'Eliminar ítem'}</DialogTitle>
+            <DialogDescription>
+              {catalogDialog === 'delete' ? `¿Querés eliminar “${itemToDelete?.title || categoryToDelete?.name}”? Esta acción no se puede deshacer.` : 'Completá el nombre y confirmá para guardar.'}
+            </DialogDescription>
+          </DialogHeader>
+          {catalogDialog !== 'delete' && <Input autoFocus label="Nombre" value={dialogValue} onChange={(event) => setDialogValue(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && void submitCatalogDialog()} placeholder={catalogDialog === 'category' ? 'Ej: Peluquería' : 'Ej: Tamaño'} />}
+          <DialogFooter>
+            <Button type="button" variant="outline" size="sm" onClick={closeCatalogDialog}>Cancelar</Button>
+            <Button type="button" variant={catalogDialog === 'delete' ? 'danger' : 'primary'} size="sm" onClick={() => void submitCatalogDialog()}>{catalogDialog === 'delete' ? 'Eliminar' : 'Guardar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
