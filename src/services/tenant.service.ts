@@ -103,4 +103,9 @@ export const tenantService = {
     const { data } = await api.delete<{ success: boolean }>(`/tenant/members/${userId}`);
     return data;
   },
+
+  async getNavigation() {
+    const { data } = await api.get<{ sections: Array<{ id: string; name: string; description?: string; pages: Array<{ id: string; name: string; path: string; feature?: string; modules: Array<{ key: string; name: string; description?: string }> }> }> }>('/tenant/navigation');
+    return data;
+  },
 };
