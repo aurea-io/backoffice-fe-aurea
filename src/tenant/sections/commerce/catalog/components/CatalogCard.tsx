@@ -3,6 +3,7 @@ import { Card } from '../../../../../components/ui/Card';
 import { Badge } from '../../../../../components/ui/Badge';
 import { Button } from '../../../../../components/ui/Button';
 import type { CatalogItem } from '../../../../../types';
+import { formatCurrencyFromCents } from '../../../../../utils/currency';
 
 interface CatalogCardProps {
   item: CatalogItem;
@@ -17,10 +18,7 @@ export function CatalogCard({
   onDelete,
   onToggleStatus,
 }: CatalogCardProps) {
-  const priceFormatted = new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-  }).format(item.priceCents / 100);
+  const priceFormatted = formatCurrencyFromCents(item.priceCents);
 
   return (
     <Card

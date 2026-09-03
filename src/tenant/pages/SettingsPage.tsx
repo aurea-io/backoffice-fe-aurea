@@ -85,7 +85,13 @@ export default function SettingsPage() {
       };
 
       const updated = await tenantService.updateSettings(updatedSettings);
-      setCurrentTenant(updated);
+      const latestTenant = useTenantStore.getState().currentTenant;
+      if (latestTenant) {
+        setCurrentTenant({
+          ...latestTenant,
+          settings: updated.settings || updatedSettings,
+        });
+      }
       setSuccessMessage('¡Configuración del negocio guardada exitosamente!');
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || 'Error al guardar los ajustes.');
@@ -100,11 +106,18 @@ export default function SettingsPage() {
     setIsRollingBack(true);
     try {
       await tenantService.rollbackBranding(version);
+      const targetTenantId = useTenantStore.getState().activeTenantId;
       const [updatedTenant, versions] = await Promise.all([
-        tenantService.getContext(activeTenantId || undefined),
+        tenantService.getContext(targetTenantId || undefined),
         tenantService.getBrandingVersions(),
       ]);
-      setCurrentTenant(updatedTenant);
+      const latestTenant = useTenantStore.getState().currentTenant;
+      if (latestTenant) {
+        setCurrentTenant({
+          ...latestTenant,
+          settings: (updatedTenant.settings || latestTenant.settings) as TenantSettings,
+        });
+      }
       setBrandingVersions(versions);
       const restored = (updatedTenant.settings || {}) as TenantSettings;
       setPrimaryColor(restored.branding?.primaryColor || '#7c3aed');

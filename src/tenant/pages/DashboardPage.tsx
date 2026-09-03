@@ -21,6 +21,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import type { Tenant } from '../../types';
 import { tenantService } from '../../services/tenant.service';
 import type { TenantAnalytics } from '../../types';
+import { formatCurrencyFromCents } from '../../utils/currency';
 
 export function DashboardPage() {
   const { user, isSuperadmin, tenants: userTenants } = useAuthStore();
@@ -121,12 +122,12 @@ export function DashboardPage() {
                       Sitio Web & Landing Pública
                     </p>
                     <p className="text-[11px] text-violet-700 dark:text-violet-400 font-mono mt-0.5">
-                      http://localhost:5173/preview/{primaryTenant.slug}
+                      {new URL(`/public/${primaryTenant.slug}`, window.location.origin).toString()}
                     </p>
                   </div>
 
                   <a
-                    href={`http://localhost:5173/preview/${primaryTenant.slug}`}
+                    href={`/public/${primaryTenant.slug}`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -136,7 +137,7 @@ export function DashboardPage() {
                   </a>
                 </div>
               </Card>
-              {analytics && <><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Miembros</p><strong className="text-2xl">{analytics.members}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Reservas</p><strong className="text-2xl">{analytics.bookings}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Pedidos</p><strong className="text-2xl">{analytics.orders}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Artículos stock</p><strong className="text-2xl">{analytics.inventoryItems}</strong></Card></div><div className="grid gap-4 sm:grid-cols-2"><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Facturación registrada</p><strong className="text-2xl">$ {(analytics.revenueCents || 0) / 100}</strong><p className="text-xs text-zinc-500">Ticket promedio: $ {((analytics.averageTicketCents || 0) / 100).toLocaleString('es-AR')}</p></Card><Card variant="glass" padding="sm"><p className="mb-2 text-xs text-zinc-500">Productos más vendidos</p>{analytics.topProducts?.slice(0, 3).map((product) => <div key={product.title} className="flex justify-between text-sm"><span>{product.title}</span><strong>{product.quantity}</strong></div>) || <p className="text-xs text-zinc-500">Sin ventas todavía</p>}</Card></div></>}
+              {analytics && <><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Miembros</p><strong className="text-2xl">{analytics.members}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Reservas</p><strong className="text-2xl">{analytics.bookings}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Pedidos</p><strong className="text-2xl">{analytics.orders}</strong></Card><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Artículos stock</p><strong className="text-2xl">{analytics.inventoryItems}</strong></Card></div><div className="grid gap-4 sm:grid-cols-2"><Card variant="glass" padding="sm"><p className="text-xs text-zinc-500">Facturación registrada</p><strong className="text-2xl">{formatCurrencyFromCents(analytics.revenueCents || 0)}</strong><p className="text-xs text-zinc-500">Ticket promedio: {formatCurrencyFromCents(analytics.averageTicketCents || 0)}</p></Card><Card variant="glass" padding="sm"><p className="mb-2 text-xs text-zinc-500">Productos más vendidos</p>{analytics.topProducts?.slice(0, 3).map((product) => <div key={product.title} className="flex justify-between text-sm"><span>{product.title}</span><strong>{product.quantity}</strong></div>) || <p className="text-xs text-zinc-500">Sin ventas todavía</p>}</Card></div></>}
             </div>
 
             {/* Account Details */}

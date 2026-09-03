@@ -20,6 +20,7 @@ import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import type { CatalogItem, Tenant } from '../../types';
+import { formatCurrencyFromCents } from '../../utils/currency';
 
 export default function PublicTenantPreviewPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -233,7 +234,7 @@ export default function PublicTenantPreviewPage() {
 
                       <div className="text-right shrink-0">
                         <span className="text-sm sm:text-base font-bold text-violet-700 dark:text-violet-300">
-                          ${(item.priceCents / 100).toFixed(2)}
+                          {formatCurrencyFromCents(item.priceCents)}
                         </span>
                       </div>
                     </div>
@@ -259,7 +260,7 @@ export default function PublicTenantPreviewPage() {
                         {selectedService.title}
                       </p>
                       <p className="text-xs text-zinc-500">
-                        Total: ${(selectedService.priceCents / 100).toFixed(2)}
+                        Total: {formatCurrencyFromCents(selectedService.priceCents)}
                       </p>
                     </div>
 
