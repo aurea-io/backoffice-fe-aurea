@@ -14,23 +14,24 @@ import GoogleCallbackPage from './features/auth/GoogleCallbackPage';
 import MagicLinkPage from './features/auth/MagicLinkPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
-import { DashboardPage } from './tenant/pages/DashboardPage';
+import { DashboardPage } from './tenant/core/dashboard/DashboardPage';
 import { SuperadminTenantsPage } from './platform/superadmin/SuperadminTenantsPage';
 import CatalogPage from './tenant/sections/commerce/catalog/CatalogPage';
-import KitchenPage from './tenant/pages/KitchenPage';
-import ClientsPage from './tenant/pages/ClientsPage';
-import CouponsPage from './tenant/pages/CouponsPage';
-import LoyaltyPage from './tenant/pages/LoyaltyPage';
-import TableBookingsPage from './tenant/pages/TableBookingsPage';
-import MembersPage from './tenant/pages/members/MembersPage';
-import InvitationsPage from './tenant/pages/invitations/InvitationsPage';
-import BillingPage from './tenant/pages/BillingPage';
+import OrdersPage from './tenant/sections/commerce/orders/OrdersPage';
+import InventoryPage from './tenant/sections/commerce/inventory/InventoryPage';
+import PosPage from './tenant/sections/commerce/pos/PosPage';
+import TablesPage from './tenant/sections/gastronomy/tables/TablesPage';
+import TableBookingsPage from './tenant/sections/gastronomy/tables/TableBookingsPage';
+import KitchenPage from './tenant/sections/gastronomy/kitchen/KitchenPage';
+import ClientsPage from './tenant/sections/crm/clients/ClientsPage';
+import CouponsPage from './tenant/sections/marketing/coupons/CouponsPage';
+import LoyaltyPage from './tenant/sections/marketing/loyalty/LoyaltyPage';
+import MembersPage from './tenant/core/members/MembersPage';
+import InvitationsPage from './tenant/core/members/invitations/InvitationsPage';
+import BillingPage from './tenant/core/billing/BillingPage';
+import SettingsPage from './tenant/core/theme/SettingsPage';
+import BookingsPage from './tenant/sections/services/bookings/BookingsPage';
 import SuperadminPlansPage from './platform/superadmin/SuperadminPlansPage';
-import AppointmentsPage from './tenant/pages/AppointmentsPage';
-import InventoryPage from './tenant/pages/InventoryPage';
-import RestaurantPage from './tenant/pages/RestaurantPage';
-import PosPage from './tenant/pages/PosPage';
-import SettingsPage from './tenant/pages/SettingsPage';
 import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
 import { SuperadminFeaturesPage } from './platform/superadmin/SuperadminFeaturesPage';
 import { TenantDetailPage } from './platform/superadmin/TenantDetailPage';
@@ -117,10 +118,13 @@ function App() {
           <Route element={<CapabilityRoute capability="catalog" permission={['catalog:read', 'catalog.view', 'catalog:write']} />}>
             <Route path="catalog" element={<CatalogPage />} />
           </Route>
-          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="appointments" element={<AppointmentsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="appointments" element={<BookingsPage />} /></Route>
+          <Route element={<CapabilityRoute capability="bookings" permission={['appointments:read', 'bookings.view']} />}><Route path="bookings" element={<BookingsPage />} /></Route>
           <Route element={<CapabilityRoute capability="tables" permission={['bookings.view', 'tables.view']} />}><Route path="table-bookings" element={<TableBookingsPage />} /></Route>
           <Route element={<CapabilityRoute capability="inventory" permission={['inventory:read', 'inventory.manage']} />}><Route path="inventory" element={<InventoryPage />} /></Route>
-          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="restaurant" element={<RestaurantPage />} /></Route>
+          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="restaurant" element={<TablesPage />} /></Route>
+          <Route element={<CapabilityRoute capability="tables" permission={['tables.view', 'tables:read', 'orders:create']} />}><Route path="tables" element={<TablesPage />} /></Route>
+          <Route element={<CapabilityRoute capability="orders" permission={['orders:read', 'orders.view']} />}><Route path="orders" element={<OrdersPage />} /></Route>
           <Route element={<CapabilityRoute capability="kitchen" permission={['kitchen.view', 'kitchen:read']} />}><Route path="kitchen" element={<KitchenPage />} /></Route>
           <Route element={<CapabilityRoute capability="clients" permission={['clients:read', 'clients.view']} />}><Route path="clients" element={<ClientsPage />} /></Route>
           <Route element={<CapabilityRoute capability="marketing" permission="marketing:read" />}><Route path="coupons" element={<CouponsPage />} /></Route>

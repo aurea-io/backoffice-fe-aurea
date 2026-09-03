@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Store, User, Sparkles, Check, Globe, Phone, MapPin, Instagram } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { useTenantStore } from '../../store/tenantStore';
-import { BrandingVersion, tenantService } from '../../services/tenant.service';
-import { authService } from '../../services/auth.service';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../components/ui/Card';
-import { Input } from '../../components/ui/Input';
-import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
-import type { TenantSettings } from '../../types';
+import { useAuthStore } from '../../../store/authStore';
+import { useTenantStore } from '../../../store/tenantStore';
+import { BrandingVersion, tenantService } from '../../../services/tenant.service';
+import { authService } from '../../../services/auth.service';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../components/ui/Card';
+import { Input } from '../../../components/ui/Input';
+import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
+import type { TenantSettings } from '../../../types';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuthStore();
