@@ -27,7 +27,7 @@ import type { NavigationSection } from '../../types/navigation.types';
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, clearAuth, isSuperadmin } = useAuthStore();
+  const { user, clearAuth, isSuperadmin, accessToken } = useAuthStore();
   const { currentTenant, clearTenant } = useTenantStore();
   const { hasCapability, hasPermission } = useCapability();
 
@@ -36,7 +36,7 @@ export function Sidebar() {
   const [isLoadingNav, setIsLoadingNav] = useState(false);
 
   useEffect(() => {
-    if (!currentTenant || isSuperadmin) return;
+    if (!currentTenant || isSuperadmin || !accessToken) return;
 
     let isMounted = true;
     setIsLoadingNav(true);
@@ -58,7 +58,7 @@ export function Sidebar() {
     return () => {
       isMounted = false;
     };
-  }, [currentTenant?.tenantId, isSuperadmin]);
+  }, [currentTenant?.tenantId, isSuperadmin, accessToken]);
 
   // Estados de expansión de secciones y páginas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
