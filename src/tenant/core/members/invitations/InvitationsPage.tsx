@@ -230,7 +230,6 @@ export default function InvitationsPage() {
               <option value="CASHIER">CASHIER (Cajero/Ventas)</option>
               <option value="MANAGER">MANAGER (Gerente)</option>
               <option value="OWNER">OWNER (Propietario)</option>
-              {user?.isAureaSuperadmin && <option value="SUPERADMIN">SUPERADMIN (Global)</option>}
             </select>
           </div>
 

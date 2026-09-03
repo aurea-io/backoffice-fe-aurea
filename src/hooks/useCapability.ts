@@ -1,16 +1,13 @@
 import { useCallback } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { useTenantStore } from '../store/tenantStore';
 
 /** Resolves effective capabilities from the server-provided tenant context. */
 export function useCapability() {
-  const isSuperadmin = useAuthStore((state) => state.isSuperadmin);
   const currentTenant = useTenantStore((state) => state.currentTenant);
   const capabilities = useTenantStore((state) => state.capabilities);
 
   const hasCapability = useCallback(
     (capability: string) => {
-      if (isSuperadmin || currentTenant?.role === 'SUPERADMIN') return true;
       if (capabilities[capability] !== undefined) return capabilities[capability];
       
       // 1. Si la capability está explícitamente activa en el tenant
@@ -21,7 +18,7 @@ export function useCapability() {
         permission === '*' || permission === 'all' || permission === capability,
       ) === true;
     },
-    [capabilities, currentTenant, isSuperadmin],
+    [capabilities, currentTenant],
   );
 
   const hasAnyCapability = useCallback(
@@ -36,10 +33,9 @@ export function useCapability() {
 
   const hasPermission = useCallback(
     (...permissions: string[]) => {
-      if (isSuperadmin || currentTenant?.role === 'SUPERADMIN' || currentTenant?.role === 'OWNER' || currentTenant?.role === 'MANAGER') return true;
-      return permissions.some((permission) => currentTenant?.permissions?.includes(permission) || currentTenant?.permissions?.includes('all'));
+      return permissions.some((permission) => currentTenant?.permissions?.includes(permission) || currentTenant?.permissions?.includes('*') || currentTenant?.permissions?.includes('all'));
     },
-    [currentTenant, isSuperadmin],
+    [currentTenant],
   );
 
   return { hasCapability, hasAnyCapability, hasAllCapabilities, hasPermission };

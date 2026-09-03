@@ -9,6 +9,7 @@ export interface NavigationPage {
   name: string;
   path: string;
   feature?: string;
+  permissions?: string[];
   modules: NavigationModule[];
 }
 

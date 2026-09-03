@@ -3,10 +3,12 @@ import { useAuthStore } from '../../store/authStore';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { Badge } from '../ui/Badge';
 import { TenantSwitcher } from '../common/TenantSwitcher';
+import { useTenantStore } from '../../store/tenantStore';
 
 export function Topbar() {
   const location = useLocation();
-  const { user, isSuperadmin } = useAuthStore();
+  const { user } = useAuthStore();
+  const currentTenant = useTenantStore((state) => state.currentTenant);
 
   const title = location.pathname.includes('/tenants') ? 'Tenants & Comercios' : 'Resumen';
 
@@ -52,7 +54,7 @@ export function Topbar() {
                 {user.name}
               </span>
               <span className="text-[9px] font-bold text-violet-600 dark:text-violet-400 uppercase">
-                {isSuperadmin ? 'Superadmin' : 'Usuario'}
+                {currentTenant?.role?.toLowerCase() || 'Usuario'}
               </span>
             </div>
           </div>

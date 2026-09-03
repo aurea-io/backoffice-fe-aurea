@@ -6,10 +6,9 @@ interface AuthState {
   accessToken: string | null;
   tenants: TenantSummary[];
   isAuthenticated: boolean;
-  isSuperadmin: boolean;
   isInitializing: boolean;
 
-  setAuth: (user: User, accessToken: string, tenants?: TenantSummary[], isSuperadmin?: boolean) => void;
+  setAuth: (user: User, accessToken: string, tenants?: TenantSummary[]) => void;
   setAccessToken: (accessToken: string) => void;
   setTenants: (tenants: TenantSummary[]) => void;
   updateUser: (partial: Partial<User>) => void;
@@ -41,17 +40,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   tenants: [],
   isAuthenticated: !!loadUser(),
-  isSuperadmin: false,
   isInitializing: true,
 
-  setAuth: (user, accessToken, tenants = [], isSuperadmin = false) => {
+  setAuth: (user, accessToken, tenants = []) => {
     saveUser(user);
     set({
       user,
       accessToken,
       tenants,
       isAuthenticated: true,
-      isSuperadmin: isSuperadmin || !!user.isAureaSuperadmin,
       isInitializing: false,
     });
   },
@@ -80,7 +77,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
       tenants: [],
       isAuthenticated: false,
-      isSuperadmin: false,
       isInitializing: false,
     });
   },
