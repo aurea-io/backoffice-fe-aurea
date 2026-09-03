@@ -155,7 +155,6 @@ function App() {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Navigate to="/core/dashboard" replace />} />
           <Route path="core/dashboard" element={<DashboardPage />} />
-          <Route path="dashboard" element={<Navigate to="/core/dashboard" replace />} />
 
           {/* Rutas generadas automáticamente desde la Base de Datos (MongoDB) */}
           {dynamicRoutes.map((page) => {

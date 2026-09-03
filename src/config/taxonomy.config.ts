@@ -36,7 +36,6 @@ export interface PageItem {
   capability?: string;
   permissions?: string[];
   modules?: ModuleItem[];
-  superadminOnly?: boolean;
 }
 
 export interface SectionItem {
@@ -45,7 +44,6 @@ export interface SectionItem {
   description?: string;
   icon?: ComponentType<{ size?: number; className?: string }>;
   pages: PageItem[];
-  superadminOnly?: boolean;
 }
 
 export const PAGE_ICONS: Record<string, ComponentType<{ size?: number; className?: string }>> = {

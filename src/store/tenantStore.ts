@@ -26,7 +26,7 @@ interface TenantState {
 
   /** Switch to operation mode inside a specific tenant */
   enterTenantOperation: (tenantId: string) => void;
-  /** Return to superadmin platform mode */
+  /** Return to platform mode */
   returnToPlatform: () => void;
   /** Set the platform mode directly */
   setPlatformMode: (mode: PlatformMode) => void;
@@ -152,7 +152,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   },
 
   returnToPlatform: () => {
-    localStorage.setItem(PLATFORM_MODE_KEY, 'superadmin');
+    localStorage.setItem(PLATFORM_MODE_KEY, 'operation');
     set({ platformMode: 'operation', currentTenant: null, activeTenantId: null });
     localStorage.removeItem(ACTIVE_TENANT_KEY);
   },
