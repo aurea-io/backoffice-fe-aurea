@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
@@ -10,14 +10,19 @@ import { useAuthStore } from '../../store/authStore';
 import { useTenantStore } from '../../store/tenantStore';
 import { Logo } from '../ui/Logo';
 import { authService } from '../../services/auth.service';
+import { tenantService } from '../../services/tenant.service';
 import { useCapability } from '../../hooks/useCapability';
 import {
-  CANONICAL_TAXONOMY,
   SUPERADMIN_TAXONOMY,
+  PAGE_ICONS,
+  SECTION_ICONS,
+  DEFAULT_PAGE_ICON,
+  DEFAULT_SECTION_ICON,
   type SectionItem,
   type PageItem,
   type ModuleItem,
 } from '../../config/taxonomy.config';
+import type { NavigationSection } from '../../types/navigation.types';
 
 export function Sidebar() {
   const navigate = useNavigate();
@@ -25,6 +30,35 @@ export function Sidebar() {
   const { user, clearAuth, isSuperadmin } = useAuthStore();
   const { currentTenant, clearTenant } = useTenantStore();
   const { hasCapability, hasPermission } = useCapability();
+
+  // Navegación dinámica provista por la Base de Datos
+  const [dynamicSections, setDynamicSections] = useState<NavigationSection[]>([]);
+  const [isLoadingNav, setIsLoadingNav] = useState(false);
+
+  useEffect(() => {
+    if (!currentTenant || isSuperadmin) return;
+
+    let isMounted = true;
+    setIsLoadingNav(true);
+
+    tenantService
+      .getNavigation()
+      .then((data) => {
+        if (isMounted && data?.sections) {
+          setDynamicSections(data.sections);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching navigation taxonomy from database:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingNav(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentTenant?.tenantId, isSuperadmin]);
 
   // Estados de expansión de secciones y páginas
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -65,61 +99,36 @@ export function Sidebar() {
     }));
   };
 
-  // Filtrado de páginas según si el comercio tiene la función activada y el rol tiene permisos
-  const isPageVisible = (page: PageItem): boolean => {
-    if (page.superadminOnly) {
-      return Boolean(isSuperadmin);
-    }
+  // Secciones visibles calculadas (100% dinámicas desde la Base de Datos)
+  const visibleSections = useMemo((): SectionItem[] => {
     if (isSuperadmin) {
-      return false; // El superadmin opera en su sección de plataforma
+      return [SUPERADMIN_TAXONOMY];
     }
+
     if (!currentTenant) {
-      return false;
+      return [];
     }
 
-    // 1. Regla Mandatoria de Tenant: si la página depende de una función (feature) del negocio
-    if (page.feature) {
-      const isFeatureActive = currentTenant.activeFeatures?.includes(page.feature) ?? false;
-      if (!isFeatureActive) {
-        return false; // Si el comercio no contrató / no tiene activa la función, NO mostrar en menú
-      }
-    }
-
-    // 2. Si requiere una capability o permiso interno de colaborador (ej: tenant:employees:read)
-    if (page.capability && !page.feature) {
-      const capOk = hasCapability(page.capability);
-      if (!capOk) return false;
-    }
-
-    // 3. Si requiere permisos específicos para el rol del colaborador
-    if (page.permissions && page.permissions.length > 0) {
-      return hasPermission(...page.permissions);
-    }
-
-    return true;
-  };
-
-  const isModuleVisible = (mod: ModuleItem): boolean => {
-    if (mod.feature) {
-      return currentTenant?.activeFeatures?.includes(mod.feature) ?? false;
-    }
-    return true;
-  };
-
-  // Secciones visibles calculadas
-  const visibleSections = useMemo(() => {
-    if (isSuperadmin) {
-      const visiblePages = SUPERADMIN_TAXONOMY.pages.filter(isPageVisible);
-      return visiblePages.length > 0
-        ? [{ ...SUPERADMIN_TAXONOMY, pages: visiblePages }]
-        : [];
-    }
-
-    return CANONICAL_TAXONOMY.map((section) => ({
-      ...section,
-      pages: section.pages.filter(isPageVisible),
-    })).filter((section) => section.pages.length > 0);
-  }, [isSuperadmin, currentTenant, hasCapability, hasPermission]);
+    // Mapear la taxonomía recibida del servidor asignando iconos dinámicamente
+    return dynamicSections.map((sec) => ({
+      id: sec.id,
+      name: sec.name,
+      description: sec.description,
+      icon: SECTION_ICONS[sec.id] ?? DEFAULT_SECTION_ICON,
+      pages: sec.pages.map((p) => ({
+        id: p.id,
+        name: p.name,
+        path: p.path,
+        icon: PAGE_ICONS[p.id] ?? DEFAULT_PAGE_ICON,
+        feature: p.feature,
+        modules: p.modules.map((m) => ({
+          key: m.key,
+          name: m.name,
+          description: m.description,
+        })),
+      })),
+    }));
+  }, [isSuperadmin, currentTenant, dynamicSections]);
 
   return (
     <aside className="hidden lg:flex flex-col fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-[#0e0f17] border-r border-zinc-200/80 dark:border-zinc-800/80 z-40 justify-between select-none">
@@ -160,7 +169,7 @@ export function Sidebar() {
                 {isSectionOpen && (
                   <ul className="space-y-0.5">
                     {section.pages.map((page: PageItem) => {
-                      const PageIcon = page.icon;
+                      const PageIcon = page.icon ?? DEFAULT_PAGE_ICON;
                       const hasModules = Boolean(page.modules && page.modules.length > 0);
                       const isPageActive = location.pathname === page.path;
                       // Si no fue clickeado explícitamente, se auto-expande si la página está activa
@@ -210,7 +219,7 @@ export function Sidebar() {
                           {/* Nivel 3: MÓDULOS (Ramas guía de árbol visual) */}
                           {hasModules && isPageOpen && (
                             <div className="relative ml-5 pl-3 pt-0.5 pb-1 border-l-2 border-zinc-200 dark:border-zinc-800/80 space-y-1">
-                              {page.modules!.filter(isModuleVisible).map((mod) => (
+                              {page.modules!.map((mod) => (
                                 <NavLink
                                   key={mod.key}
                                   to={page.path}
