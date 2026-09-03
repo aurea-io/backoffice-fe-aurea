@@ -30,7 +30,9 @@ interface TenantState {
 
 function loadActiveTenantId(): string | null {
   try {
-    return localStorage.getItem(ACTIVE_TENANT_KEY);
+    const stored = localStorage.getItem(ACTIVE_TENANT_KEY);
+    if (!stored || stored === 'undefined' || stored === 'null') return null;
+    return stored;
   } catch {
     return null;
   }
@@ -55,8 +57,30 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 
   setCurrentTenant: (tenant) => {
     if (tenant) {
-      localStorage.setItem(ACTIVE_TENANT_KEY, tenant.tenantId);
-      set({ currentTenant: tenant, activeTenantId: tenant.tenantId, isLoadingTenant: false, capabilities: {} });
+      const resolvedTenantId = [
+        tenant.tenantId,
+        (tenant as TenantContext & { id?: string }).id,
+      ].find(
+        (id): id is string => Boolean(id) && id !== 'undefined' && id !== 'null',
+      );
+      if (!resolvedTenantId) {
+        localStorage.removeItem(ACTIVE_TENANT_KEY);
+        set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, capabilities: {} });
+        return;
+      }
+      localStorage.setItem(ACTIVE_TENANT_KEY, resolvedTenantId);
+      const safeTenant: TenantContext = {
+        ...tenant,
+        tenantId: resolvedTenantId,
+        activeFeatures: tenant.activeFeatures || [],
+        permissions: tenant.permissions || [],
+      };
+      set({
+        currentTenant: safeTenant,
+        activeTenantId: resolvedTenantId,
+        isLoadingTenant: false,
+        capabilities: {},
+      });
     } else {
       localStorage.removeItem(ACTIVE_TENANT_KEY);
       set({ currentTenant: null, activeTenantId: null, isLoadingTenant: false, capabilities: {} });
@@ -64,7 +88,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
   },
 
   setActiveTenantId: (tenantId) => {
-    if (tenantId) {
+    if (tenantId && tenantId !== 'undefined' && tenantId !== 'null') {
       localStorage.setItem(ACTIVE_TENANT_KEY, tenantId);
       set({ activeTenantId: tenantId });
     } else {
@@ -81,7 +105,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
     const current = get().currentTenant;
     if (!current) return false;
     if (current.role === 'SUPERADMIN') return true;
-    return current.activeFeatures.includes(feature);
+    return current.activeFeatures?.includes(feature) ?? false;
   },
 
   clearTenant: () => {

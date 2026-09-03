@@ -12,8 +12,8 @@ export function useCapability() {
     (capability: string) => {
       if (isSuperadmin || currentTenant?.role === 'SUPERADMIN') return true;
       if (capabilities[capability] !== undefined) return capabilities[capability];
-      return currentTenant?.permissions.includes(capability) === true ||
-        currentTenant?.activeFeatures.includes(capability) === true;
+      return currentTenant?.permissions?.includes(capability) === true ||
+        currentTenant?.activeFeatures?.includes(capability) === true;
     },
     [capabilities, currentTenant, isSuperadmin],
   );
@@ -31,7 +31,7 @@ export function useCapability() {
   const hasPermission = useCallback(
     (...permissions: string[]) => {
       if (isSuperadmin || currentTenant?.role === 'SUPERADMIN' || currentTenant?.role === 'OWNER' || currentTenant?.role === 'MANAGER') return true;
-      return permissions.some((permission) => currentTenant?.permissions.includes(permission) || currentTenant?.permissions.includes('all'));
+      return permissions.some((permission) => currentTenant?.permissions?.includes(permission) || currentTenant?.permissions?.includes('all'));
     },
     [currentTenant, isSuperadmin],
   );
