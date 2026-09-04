@@ -31,7 +31,20 @@ import BillingPage from './tenant/core/billing/BillingPage';
 import SettingsPage from './tenant/core/theme/SettingsPage';
 import ModulesPage from './tenant/core/modules/ModulesPage';
 import BookingsPage from './tenant/sections/services/bookings/BookingsPage';
-import PublicTenantPreviewPage from './platform/preview/PublicTenantPreviewPage';
+
+function ClientRedirect() {
+  useEffect(() => {
+    const slug = window.location.pathname.split('/public/')[1]?.split('/')[0] || '';
+    const clientBase = (import.meta as any).env?.VITE_CLIENT_URL || 'http://localhost:5175';
+    window.location.href = `${clientBase}/${slug}`;
+  }, []);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0c0d12] text-zinc-300">
+      <p className="text-sm font-medium">Redirigiendo a la experiencia de cliente...</p>
+    </div>
+  );
+}
 
 const PAGE_COMPONENTS: Record<string, React.ComponentType> = {
   dashboard: DashboardPage,
@@ -150,7 +163,7 @@ function App() {
       <Route path="/auth/google/callback" element={<GoogleCallbackPage />} />
       <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/public/:slug" element={<PublicTenantPreviewPage />} />
+      <Route path="/public/:slug" element={<ClientRedirect />} />
 
       {/* Protected App Routes */}
       <Route element={<ProtectedRoute />}>
