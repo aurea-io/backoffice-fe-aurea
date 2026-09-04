@@ -86,25 +86,39 @@ export default function PublicTenantPreviewPage() {
 
   const primaryAccent = (tenant?.settings as any)?.branding?.primaryColor || '#7c3aed';
   const isBeauty = tenant?.vertical === 'beauty';
-  const hasBookings = publicCapabilities.includes('bookings');
+  const hasBookings = publicCapabilities.includes('bookings') || selectedService?.isService;
 
   const submitBooking = async () => {
-    if (!slug || !selectedService || !customerName.trim() || !isBeauty) return;
+    if (!slug || !selectedService || !customerName.trim()) return;
     setIsBooking(true);
     setBookingError(null);
     try {
-      await api.post(`/public/${encodeURIComponent(slug)}/bookings`, {
-        catalogItemId: selectedService.id,
-        customerName: customerName.trim(),
-        customerEmail: customerEmail.trim() || undefined,
-        customerPhone: (customerPhone || '').trim() || undefined,
-        date: selectedDate,
-        startTime: selectedTime,
-        durationMin: selectedService.durationMin || undefined,
-      });
+      if (selectedService.isService) {
+        await api.post(`/public/${encodeURIComponent(slug)}/bookings`, {
+          catalogItemId: selectedService.id,
+          customerName: customerName.trim(),
+          customerEmail: customerEmail.trim() || undefined,
+          customerPhone: (customerPhone || '').trim() || undefined,
+          date: selectedDate,
+          startTime: selectedTime,
+          durationMin: selectedService.durationMin || undefined,
+        });
+      } else {
+        await api.post(`/public/${encodeURIComponent(slug)}/orders`, {
+          customerName: customerName.trim(),
+          channel: 'takeaway',
+          lines: [
+            {
+              catalogItemId: selectedService.id,
+              quantity: 1,
+            },
+          ],
+          notes: `Tel: ${customerPhone || 'N/A'}. Horario retiro/atención: ${selectedTime} hs`,
+        });
+      }
       setBookingSuccess(true);
     } catch (error: any) {
-      setBookingError(error.response?.data?.message || 'No se pudo confirmar la reserva. Elegí otro horario.');
+      setBookingError(error.response?.data?.message || 'No se pudo confirmar la solicitud. Intente nuevamente.');
     } finally {
       setIsBooking(false);
     }
@@ -168,11 +182,12 @@ export default function PublicTenantPreviewPage() {
               <CheckCircle2 size={32} />
             </div>
             <h2 className="font-editorial text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
-              ¡Turno Confirmado con Éxito!
+              {selectedService?.isService ? '¡Turno Confirmado con Éxito!' : '¡Pedido Recibido con Éxito!'}
             </h2>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-              Te esperamos el <strong>{selectedDate}</strong> para tu servicio de{' '}
-              <strong>{selectedService?.title}</strong>.
+              {selectedService?.isService
+                ? `Te esperamos el ${selectedDate} para tu servicio de ${selectedService?.title}.`
+                : `Tu orden de ${selectedService?.title} ha sido registrada para retiro/atención a las ${selectedTime} hs.`}
             </p>
             <Button
               variant="outline"
@@ -180,7 +195,7 @@ export default function PublicTenantPreviewPage() {
               onClick={() => setBookingSuccess(false)}
               className="mt-4"
             >
-              Reservar Otro Turno
+              {selectedService?.isService ? 'Reservar Otro Turno' : 'Realizar Otro Pedido'}
             </Button>
           </Card>
         ) : (
@@ -259,12 +274,28 @@ export default function PublicTenantPreviewPage() {
                       <p className="text-[11px] font-bold text-violet-600 dark:text-violet-400 uppercase">
                         Seleccionado
                       </p>
-                      <p className="font-bold text-sm text-zinc-900 dark:text-white mt-0.5">
+                      <h4 className="font-bold text-sm text-zinc-900 dark:text-white mt-0.5">
                         {selectedService.title}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        Total: {formatCurrencyFromCents(selectedService.priceCents)}
-                      </p>
+                      </h4>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-violet-100 dark:border-violet-900/50">
+                        <span className="text-xs text-zinc-500">Total:</span>
+                        <span className="font-bold text-sm text-violet-700 dark:text-violet-300">
+                          {formatCurrencyFromCents(selectedService.priceCents)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                        Fecha:
+                      </label>
+                      <Input
+                        type="date"
+                        id="booking-date-input"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        min={new Date().toISOString().slice(0, 10)}
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -290,21 +321,43 @@ export default function PublicTenantPreviewPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Input label="Tu nombre" value={customerName} onChange={(event) => setCustomerName(event.target.value)} required />
-                      <Input label="Teléfono / WhatsApp" type="tel" placeholder="Ej. +54 9 11 5555-1234" value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} />
-                      <Input label="Email (opcional)" type="email" value={customerEmail} onChange={(event) => setCustomerEmail(event.target.value)} />
+                      <Input
+                        id="customer-name-input"
+                        label="Tu nombre"
+                        placeholder="Ej. Sofía Mendonça"
+                        value={customerName}
+                        onChange={(event) => setCustomerName(event.target.value)}
+                        required
+                      />
+                      <Input
+                        id="customer-phone-input"
+                        label="Teléfono / WhatsApp"
+                        type="tel"
+                        placeholder="Ej. +54 9 11 5555-1234"
+                        value={customerPhone}
+                        onChange={(event) => setCustomerPhone(event.target.value)}
+                      />
+                      <Input
+                        id="customer-email-input"
+                        label="Email (opcional)"
+                        type="email"
+                        placeholder="tu@email.com"
+                        value={customerEmail}
+                        onChange={(event) => setCustomerEmail(event.target.value)}
+                      />
                       {bookingError && <p className="text-xs font-medium text-rose-600">{bookingError}</p>}
                     </div>
 
                     <Button
+                      id="submit-public-booking-btn"
                       variant="primary"
                       size="lg"
                       className="w-full mt-4"
                       onClick={submitBooking}
                       isLoading={isBooking}
-                      disabled={!customerName.trim() || !isBeauty}
+                      disabled={!customerName.trim() || !selectedService}
                     >
-                      {isBeauty ? 'Confirmar Reserva' : 'Pedir Ahora'}
+                      {selectedService?.isService ? 'Confirmar Reserva' : 'Pedir Ahora'}
                     </Button>
                   </div>
                 ) : (

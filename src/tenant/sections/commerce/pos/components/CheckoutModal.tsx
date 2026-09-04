@@ -45,27 +45,20 @@ export function CheckoutModal({ isOpen, onClose, cart, totalCents, onSuccess }: 
     setSubmitting(true);
     setError(null);
 
-    const itemsPayload = cart.map((item) => ({
+    const linesPayload = cart.map((item) => ({
       catalogItemId: item.id,
       quantity: item.quantity,
-      unitPriceCents: item.price,
     }));
-
-    const paymentDetails =
-      paymentMode === 'split'
-        ? [
-            { method: 'cash', amountCents: Math.round(cashAmount * 100) },
-            { method: secondMethod, amountCents: Math.round(remainingForSecond * 100) },
-          ]
-        : [{ method: selectedMethod, amountCents: totalCents }];
 
     try {
       const order = await ordersApi.createOrder({
         customerName: customerName.trim() || 'Cliente Mostrador',
-        type: 'takeaway',
-        items: itemsPayload,
-        payments: paymentDetails,
-        notes: paymentMode === 'split' ? `Pago dividido: Efectivo $${cashAmount} + ${secondMethod} $${remainingForSecond}` : undefined,
+        channel: 'dine_in',
+        lines: linesPayload,
+        notes:
+          paymentMode === 'split'
+            ? `Pago dividido: Efectivo $${cashAmount} + ${secondMethod} $${remainingForSecond}`
+            : `Cobrado por ${selectedMethod}`,
       });
       setCompletedOrder(order);
     } catch (err: any) {
