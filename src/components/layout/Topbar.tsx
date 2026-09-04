@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { Badge } from '../ui/Badge';
@@ -11,6 +12,7 @@ export function Topbar() {
   const currentTenant = useTenantStore((state) => state.currentTenant);
 
   const title = location.pathname.includes('/tenants') ? 'Tenants & Comercios' : 'Resumen';
+  const clientUrl = (import.meta as any).env?.VITE_CLIENT_URL || 'http://localhost:5175';
 
   return (
     <header className="sticky top-0 right-0 left-0 lg:left-64 h-16 bg-white/85 dark:bg-[#0c0d12]/85 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800/80 px-4 lg:px-8 flex items-center justify-between z-30 transition-all">
@@ -36,6 +38,19 @@ export function Topbar() {
         <div className="w-48 sm:w-56">
           <TenantSwitcher />
         </div>
+
+        {currentTenant?.slug && (
+          <a
+            href={`${clientUrl}/${currentTenant.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-violet-500/10 hover:bg-violet-500/20 text-violet-600 dark:text-violet-400 border border-violet-500/20 transition shadow-2xs"
+            title="Abrir la PWA y tienda online para clientes"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Tienda Online</span>
+          </a>
+        )}
 
         <Badge variant="emerald" size="sm" dot className="hidden sm:inline-flex">
           En línea

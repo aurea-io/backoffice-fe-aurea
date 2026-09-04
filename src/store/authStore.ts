@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   tenants: [],
   isAuthenticated: !!loadUser(),
-  isInitializing: true,
+  isInitializing: !!loadUser(),
 
   setAuth: (user, accessToken, tenants = []) => {
     saveUser(user);
